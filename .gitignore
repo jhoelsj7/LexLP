@@ -1,0 +1,9 @@
+# Binarios compilados
+LexLP.exe
+lexlp
+
+# Salidas generadas al ejecutar el analizador
+output/*.txt
+
+# Herramientas de análisis local
+graphify-out/
