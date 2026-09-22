@@ -5,6 +5,10 @@
 // AVANCE SEMANA 1 (15/09): lectura del archivo fuente + reconocimiento de
 //                          NUM_INT y NUM_DEC + reporte de errores lexicos
 //                          con linea y columna.
+// AVANCE SEMANA 2 (22/09): ID + TEXTO + palabras reservadas + operadores +
+//                          simbolos especiales + tabla de simbolos.
+//                          Los comentarios (//...) se reconocen y se
+//                          descartan, igual que los espacios.
 //
 // Uso:  LexLP.exe  <archivo.lp>
 //       Si no se indica archivo, usa tests/prueba_semana1.lp
@@ -62,6 +66,21 @@ static void imprimirDetalleTokens(std::ostream& salida, const std::vector<Token>
     }
 }
 
+// Tabla de simbolos: un identificador por linea, en el orden en que se
+// registraron (ese orden es el mismo indice que aparece como atributo
+// en los tokens <ID,n>).
+static void imprimirTablaSimbolos(std::ostream& salida, const std::vector<std::string>& tabla) {
+    if (tabla.empty()) {
+        salida << "No se encontraron identificadores.\n";
+        return;
+    }
+    salida << "INDICE  IDENTIFICADOR\n";
+    salida << "------  -------------\n";
+    for (size_t i = 0; i < tabla.size(); ++i) {
+        salida << "  " << i << "\t   " << tabla[i] << "\n";
+    }
+}
+
 static void imprimirErrores(std::ostream& salida, const std::vector<Token>& errores) {
     if (errores.empty()) {
         salida << "No se encontraron errores lexicos.\n";
@@ -100,10 +119,14 @@ int main(int argc, char* argv[]) {
     std::cout << "\n--- DETALLE (linea / columna) ---\n";
     imprimirDetalleTokens(std::cout, tokens);
 
+    std::cout << "\n--- TABLA DE SIMBOLOS ---\n";
+    imprimirTablaSimbolos(std::cout, lexer.tablaSimbolos());
+
     std::cout << "\n--- ERRORES LEXICOS ---\n";
     imprimirErrores(std::cout, lexer.errores());
 
     std::cout << "\nTotal de tokens reconocidos: " << tokens.size() << "\n";
+    std::cout << "Total de identificadores:    " << lexer.tablaSimbolos().size() << "\n";
     std::cout << "Total de errores lexicos:    " << lexer.errores().size() << "\n";
 
     // 3. Exportacion de resultados a la carpeta output/
@@ -113,6 +136,8 @@ int main(int argc, char* argv[]) {
     imprimirListaTokens(fTokens, tokens);
     fTokens << "\n";
     imprimirDetalleTokens(fTokens, tokens);
+    fTokens << "\n--- TABLA DE SIMBOLOS ---\n";
+    imprimirTablaSimbolos(fTokens, lexer.tablaSimbolos());
 
     std::ofstream fErrores("output/errores.txt");
     imprimirErrores(fErrores, lexer.errores());

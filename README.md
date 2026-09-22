@@ -20,19 +20,31 @@ generadores tipo Lex/Flex.
 | Entrega | Contenido | Estado |
 |---|---|---|
 | Semana 1 (15/09) | Lectura del archivo + `NUM_INT` + `NUM_DEC` | ✅ Implementado |
-| Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + tabla de símbolos | ⏳ Pendiente |
-| Semana 3 (29/09) | Operadores + tokens completos + integración + pruebas | ⏳ Pendiente |
+| Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + operadores + símbolos + tabla de símbolos | ✅ Implementado |
+| Semana 3 (29/09) | Integración final + batería de pruebas | ⏳ Pendiente |
 
 ### Expresiones regulares implementadas
 
+Variables base: `D = [0-9]` y `L = [a-zA-Z_]`.
+
 | ER | Token | Ejemplo |
 |---|---|---|
-| `D = [0-9]` | — | — |
 | `D+` | `NUM_INT` | `20` |
 | `D+\.D+` | `NUM_DEC` | `15.5` |
+| `L(L\|D)*` | `ID` | `edad` |
+| `".*"` | `TEXTO` | `"hola"` |
+| `int, float, char, boolean, void, if, else, for, while, scanf, println, main, return` | `INT, FLOAT, CHAR, BOOLEAN, VOID, IF, ELSE, FOR, WHILE, SCANF, PRINTLN, MAIN, RETURN` | `if` |
+| `> \| >= \| < \| <= \| != \| ==` | `COMP` | `>=` |
+| `=` | (símbolo directo) | `=` |
+| `+ - * / %` | (símbolos directos) | `+` |
+| `&& \|\| !` | (símbolos directos) | `&&` |
+| `( ) [ ] { } , ;` | (símbolos directos) | `(` |
+| `//.*\n` | `COMENT` — se reconoce pero **no genera token**, se descarta igual que los espacios | `// nota` |
 
-Cualquier otro carácter se reporta por ahora como `ERROR_LEXICO`, porque los
-demás tokens aún no forman parte de esta fase.
+Una palabra reservada tiene prioridad sobre `ID`: `if` produce `<IF>`, pero
+`if2` sigue siendo un `ID` porque no coincide exactamente con la palabra
+reservada. Cualquier carácter (o cadena de texto sin cerrar) que no encaje en
+ninguna de estas reglas se reporta como `ERROR_LEXICO`.
 
 ---
 
@@ -96,7 +108,35 @@ Si no se indica archivo, se usa `tests/prueba_semana1.lp` por defecto.
   aparte, de modo que el análisis continúa y se reportan *todos* los errores
   del archivo en una sola ejecución, en lugar de detenerse en el primero.
 
-- **El campo `atributo` del token ya existe** (vale `-1` mientras no aplique).
-  En la Semana 2 guardará la posición del identificador en la tabla de
-  símbolos, y la impresión pasará automáticamente de `<NUM_INT>` a `<ID,0>`
-  sin modificar el resto del código.
+- **El campo `atributo` del token** vale `-1` para todo token que no sea
+  `ID`. Para un `ID` guarda su posición en la tabla de símbolos, y la
+  impresión pasa automáticamente de `<TIPO>` a `<ID,0>` sin necesidad de
+  tocar `Token::aCadena()`.
+
+- **Tabla de símbolos como lista de identificadores únicos, en orden de
+  aparición.** Al leer un `ID` se busca linealmente en la tabla: si ya
+  existe se reutiliza su índice, si no, se agrega al final. Ese índice es
+  el `atributo` del token. Es una búsqueda lineal (no un `map`) porque el
+  volumen de identificadores de un programa fuente es pequeño y así el
+  código queda igual de directo que el resto del autómata.
+
+- **Palabras reservadas se resuelven después de reconocer el `ID` completo.**
+  El lexema se compara contra una tabla fija (`int`, `if`, `main`, ...); si
+  coincide exactamente se devuelve el token reservado (`<IF>`, `<MAIN>`,
+  ...) y NO se registra en la tabla de símbolos. Por eso `if2` sigue siendo
+  un `ID` normal: la coincidencia es exacta, no por prefijo.
+
+- **Los operadores de dos caracteres (`==`, `!=`, `>=`, `<=`, `&&`, `||`)
+  se resuelven con un carácter de *lookahead*** sobre el primero (`=`, `!`,
+  `>`, `<`, `&`, `|`). Un `&` o `|` que no forma el par completo no
+  pertenece al alfabeto de LP y se reporta como `ERROR_LEXICO`.
+
+- **Los comentarios (`//.*\n`) se tratan igual que los espacios en blanco**:
+  se reconocen y se descartan dentro de la misma función que salta
+  espacios, así nunca llegan a generar un token ni a interrumpir el
+  reconocimiento del símbolo siguiente.
+
+- **Una cadena de texto (`".*"`) sin comilla de cierre en la misma línea**
+  se reporta como `ERROR_LEXICO` (con el texto leído hasta el corte), en
+  vez de dejar que el analizador arrastre el error a las líneas
+  siguientes.

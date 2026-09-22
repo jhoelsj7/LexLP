@@ -5,24 +5,58 @@
 
 // ---------------------------------------------------------------------------
 // Tipos de token del lenguaje LP.
-// FASE ACTUAL (Semana 1): solo se reconocen los numericos.
-// Los demas tipos (ID, TEXTO, palabras reservadas, operadores, simbolos)
-// se agregan en las Semanas 2 y 3 anadiendo valores a este enum.
+//
+// Variables base de la especificacion:
+//      D = [0-9]
+//      L = [a-zA-Z_]
+//
+// FASE ACTUAL (Semana 2): numericos + identificadores + texto + palabras
+// reservadas + operadores + simbolos especiales. El comentario (COMENT =
+// //.*\n) se reconoce pero no genera token: se descarta igual que un espacio.
 // ---------------------------------------------------------------------------
 enum class TipoToken {
-    NUM_INT,        // ER:  D+          ejemplo: 20
-    NUM_DEC,        // ER:  D+ \. D+    ejemplo: 15.5
-    ERROR_LEXICO,   // caracter que no pertenece al alfabeto de LP
+    NUM_INT,        // ER:  D+                 ejemplo: 20
+    NUM_DEC,        // ER:  D+ \. D+            ejemplo: 15.5
+    ID,             // ER:  L (L|D)*            ejemplo: edad
+    TEXTO,          // ER:  " .* "              ejemplo: "hola"
+
+    // Palabras reservadas
+    INT, FLOAT, CHAR, BOOLEAN, VOID,
+    IF, ELSE, FOR, WHILE,
+    SCANF, PRINTLN, MAIN, RETURN,
+
+    // Operador de comparacion/relacional: > >= < <= != ==
+    COMP,
+
+    // Asignacion
+    ASIGNACION,     // =
+
+    // Aritmeticos
+    SUMA, RESTA, MULT, DIV, MOD,               // + - * / %
+
+    // Logicos
+    AND, OR, NOT,                              // && || !
+
+    // Simbolos especiales
+    PAR_IZQ, PAR_DER,      // ( )
+    COR_IZQ, COR_DER,      // [ ]
+    LLAVE_IZQ, LLAVE_DER,  // { }
+    COMA, PUNTOCOMA,       // , ;
+
+    ERROR_LEXICO,   // caracter (o cadena) que no pertenece al alfabeto de LP
     FIN_ARCHIVO     // marca interna: se llego al final de la entrada
 };
 
 // Nombre del tipo de token tal como debe aparecer en los reportes.
+// Los tokens con nombre propio (NUM_INT, ID, COMP, las reservadas, ...)
+// devuelven su nombre. Los "tokens directos" (=, +, (, ...) devuelven su
+// propio simbolo, tal como pide la especificacion.
 std::string nombreTipoToken(TipoToken tipo);
 
 // ---------------------------------------------------------------------------
 // Un token reconocido en el programa fuente.
-// 'atributo' guardara la posicion en la tabla de simbolos cuando el token
-// sea un identificador (Semana 2). Por ahora vale -1 = no aplica.
+// 'atributo' guarda la posicion en la tabla de simbolos cuando el token es
+// un identificador (ID). Para el resto de tokens vale -1 = no aplica.
 // ---------------------------------------------------------------------------
 struct Token {
     TipoToken   tipo;
