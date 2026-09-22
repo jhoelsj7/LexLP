@@ -5,10 +5,9 @@
 // AVANCE SEMANA 1 (15/09): lectura del archivo fuente + reconocimiento de
 //                          NUM_INT y NUM_DEC + reporte de errores lexicos
 //                          con linea y columna.
-// AVANCE SEMANA 2 (22/09): ID + TEXTO + palabras reservadas + operadores +
-//                          simbolos especiales + tabla de simbolos.
-//                          Los comentarios (//...) se reconocen y se
-//                          descartan, igual que los espacios.
+// AVANCE SEMANA 2 (22/09): ID + TEXTO + palabras reservadas + tabla de
+//                          simbolos. Operadores, simbolos especiales y
+//                          comentarios quedan para la Semana 3.
 //
 // Uso:  LexLP.exe  <archivo.lp>
 //       Si no se indica archivo, usa tests/prueba_semana1.lp

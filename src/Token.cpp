@@ -21,27 +21,6 @@ std::string nombreTipoToken(TipoToken tipo) {
         case TipoToken::MAIN:         return "MAIN";
         case TipoToken::RETURN:       return "RETURN";
 
-        case TipoToken::COMP:         return "COMP";
-
-        // Tokens directos: su "nombre" es su propio simbolo.
-        case TipoToken::ASIGNACION:   return "=";
-        case TipoToken::SUMA:         return "+";
-        case TipoToken::RESTA:        return "-";
-        case TipoToken::MULT:         return "*";
-        case TipoToken::DIV:          return "/";
-        case TipoToken::MOD:          return "%";
-        case TipoToken::AND:          return "&&";
-        case TipoToken::OR:           return "||";
-        case TipoToken::NOT:          return "!";
-        case TipoToken::PAR_IZQ:      return "(";
-        case TipoToken::PAR_DER:      return ")";
-        case TipoToken::COR_IZQ:      return "[";
-        case TipoToken::COR_DER:      return "]";
-        case TipoToken::LLAVE_IZQ:    return "{";
-        case TipoToken::LLAVE_DER:    return "}";
-        case TipoToken::COMA:         return ",";
-        case TipoToken::PUNTOCOMA:    return ";";
-
         case TipoToken::ERROR_LEXICO: return "ERROR_LEXICO";
         case TipoToken::FIN_ARCHIVO:  return "FIN_ARCHIVO";
     }
@@ -57,7 +36,7 @@ Token::Token(TipoToken tipo,
 
 std::string Token::aCadena() const {
     // Solo ID lleva atributo (posicion en la tabla de simbolos): se imprime
-    // como <ID,0>. El resto de tokens se imprime solo con su nombre/simbolo.
+    // como <ID,0>. El resto de tokens se imprime solo con su nombre.
     if (atributo >= 0) {
         return "<" + nombreTipoToken(tipo) + "," + std::to_string(atributo) + ">";
     }

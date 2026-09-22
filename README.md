@@ -20,8 +20,8 @@ generadores tipo Lex/Flex.
 | Entrega | Contenido | Estado |
 |---|---|---|
 | Semana 1 (15/09) | Lectura del archivo + `NUM_INT` + `NUM_DEC` | ✅ Implementado |
-| Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + operadores + símbolos + tabla de símbolos | ✅ Implementado |
-| Semana 3 (29/09) | Integración final + batería de pruebas | ⏳ Pendiente |
+| Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + tabla de símbolos | ✅ Implementado |
+| Semana 3 (29/09) | Operadores + tokens completos + integración + pruebas | ⏳ Pendiente |
 
 ### Expresiones regulares implementadas
 
@@ -34,17 +34,12 @@ Variables base: `D = [0-9]` y `L = [a-zA-Z_]`.
 | `L(L\|D)*` | `ID` | `edad` |
 | `".*"` | `TEXTO` | `"hola"` |
 | `int, float, char, boolean, void, if, else, for, while, scanf, println, main, return` | `INT, FLOAT, CHAR, BOOLEAN, VOID, IF, ELSE, FOR, WHILE, SCANF, PRINTLN, MAIN, RETURN` | `if` |
-| `> \| >= \| < \| <= \| != \| ==` | `COMP` | `>=` |
-| `=` | (símbolo directo) | `=` |
-| `+ - * / %` | (símbolos directos) | `+` |
-| `&& \|\| !` | (símbolos directos) | `&&` |
-| `( ) [ ] { } , ;` | (símbolos directos) | `(` |
-| `//.*\n` | `COMENT` — se reconoce pero **no genera token**, se descarta igual que los espacios | `// nota` |
 
 Una palabra reservada tiene prioridad sobre `ID`: `if` produce `<IF>`, pero
 `if2` sigue siendo un `ID` porque no coincide exactamente con la palabra
 reservada. Cualquier carácter (o cadena de texto sin cerrar) que no encaje en
-ninguna de estas reglas se reporta como `ERROR_LEXICO`.
+ninguna de estas reglas se reporta como `ERROR_LEXICO`, porque operadores y
+símbolos especiales todavía no forman parte de esta fase.
 
 ---
 
@@ -125,16 +120,6 @@ Si no se indica archivo, se usa `tests/prueba_semana1.lp` por defecto.
   coincide exactamente se devuelve el token reservado (`<IF>`, `<MAIN>`,
   ...) y NO se registra en la tabla de símbolos. Por eso `if2` sigue siendo
   un `ID` normal: la coincidencia es exacta, no por prefijo.
-
-- **Los operadores de dos caracteres (`==`, `!=`, `>=`, `<=`, `&&`, `||`)
-  se resuelven con un carácter de *lookahead*** sobre el primero (`=`, `!`,
-  `>`, `<`, `&`, `|`). Un `&` o `|` que no forma el par completo no
-  pertenece al alfabeto de LP y se reporta como `ERROR_LEXICO`.
-
-- **Los comentarios (`//.*\n`) se tratan igual que los espacios en blanco**:
-  se reconocen y se descartan dentro de la misma función que salta
-  espacios, así nunca llegan a generar un token ni a interrumpir el
-  reconocimiento del símbolo siguiente.
 
 - **Una cadena de texto (`".*"`) sin comilla de cierre en la misma línea**
   se reporta como `ERROR_LEXICO` (con el texto leído hasta el corte), en

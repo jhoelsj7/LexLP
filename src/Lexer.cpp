@@ -24,8 +24,7 @@ char Lexer::actual() const {
 }
 
 // Mira un caracter mas adelante sin consumirlo.
-// Es lo que permite distinguir  "15.5"  (NUM_DEC)  de  "15."  (NUM_INT y luego error),
-// y tambien detectar "//" antes de decidir si "/" es un DIV o el inicio de un comentario.
+// Es lo que permite distinguir  "15.5"  (NUM_DEC)  de  "15."  (NUM_INT y luego error).
 char Lexer::siguiente() const {
     if (pos_ + 1 >= fuente_.size()) return '\0';
     return fuente_[pos_ + 1];
@@ -45,22 +44,12 @@ char Lexer::avanzar() {
     return c;
 }
 
-// Espacios/tabs/saltos de linea y comentarios (COMENT = //.*\n) se saltan
-// por igual: ninguno de los dos genera token. Se repite en bucle porque
-// despues de un comentario puede venir mas espacio o otro comentario.
 void Lexer::omitirEspacios() {
     while (!finEntrada()) {
         char c = actual();
         // '\r' aparece en los archivos guardados en Windows (fin de linea CRLF)
         if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
             avanzar();
-        } else if (c == '/' && siguiente() == '/') {
-            avanzar(); // primer '/'
-            avanzar(); // segundo '/'
-            while (!finEntrada() && actual() != '\n') {
-                avanzar();
-            }
-            // el '\n' final del comentario lo consume la proxima vuelta del bucle
         } else {
             break;
         }
@@ -182,65 +171,6 @@ Token Lexer::leerTexto() {
     return error;
 }
 
-// Operadores y simbolos especiales. Varios operadores comparten su primer
-// caracter con otro token mas corto (=, ==) (!, !=) (>, >=) (<, <=), asi que
-// se usa un caracter de lookahead para decidir cual de los dos es.
-Token Lexer::leerSimbolo() {
-    int lineaInicio   = linea_;
-    int columnaInicio = columna_;
-    char c = avanzar();
-
-    switch (c) {
-        case '+': return Token(TipoToken::SUMA,      "+", lineaInicio, columnaInicio);
-        case '-': return Token(TipoToken::RESTA,      "-", lineaInicio, columnaInicio);
-        case '*': return Token(TipoToken::MULT,       "*", lineaInicio, columnaInicio);
-        case '/': return Token(TipoToken::DIV,        "/", lineaInicio, columnaInicio);
-        case '%': return Token(TipoToken::MOD,        "%", lineaInicio, columnaInicio);
-
-        case '(': return Token(TipoToken::PAR_IZQ,    "(", lineaInicio, columnaInicio);
-        case ')': return Token(TipoToken::PAR_DER,    ")", lineaInicio, columnaInicio);
-        case '[': return Token(TipoToken::COR_IZQ,    "[", lineaInicio, columnaInicio);
-        case ']': return Token(TipoToken::COR_DER,    "]", lineaInicio, columnaInicio);
-        case '{': return Token(TipoToken::LLAVE_IZQ,  "{", lineaInicio, columnaInicio);
-        case '}': return Token(TipoToken::LLAVE_DER,  "}", lineaInicio, columnaInicio);
-        case ',': return Token(TipoToken::COMA,       ",", lineaInicio, columnaInicio);
-        case ';': return Token(TipoToken::PUNTOCOMA,  ";", lineaInicio, columnaInicio);
-
-        case '=':
-            if (actual() == '=') { avanzar(); return Token(TipoToken::COMP, "==", lineaInicio, columnaInicio); }
-            return Token(TipoToken::ASIGNACION, "=", lineaInicio, columnaInicio);
-
-        case '>':
-            if (actual() == '=') { avanzar(); return Token(TipoToken::COMP, ">=", lineaInicio, columnaInicio); }
-            return Token(TipoToken::COMP, ">", lineaInicio, columnaInicio);
-
-        case '<':
-            if (actual() == '=') { avanzar(); return Token(TipoToken::COMP, "<=", lineaInicio, columnaInicio); }
-            return Token(TipoToken::COMP, "<", lineaInicio, columnaInicio);
-
-        case '!':
-            if (actual() == '=') { avanzar(); return Token(TipoToken::COMP, "!=", lineaInicio, columnaInicio); }
-            return Token(TipoToken::NOT, "!", lineaInicio, columnaInicio);
-
-        case '&':
-            if (actual() == '&') { avanzar(); return Token(TipoToken::AND, "&&", lineaInicio, columnaInicio); }
-            break; // '&' suelto no pertenece al alfabeto de LP
-
-        case '|':
-            if (actual() == '|') { avanzar(); return Token(TipoToken::OR, "||", lineaInicio, columnaInicio); }
-            break; // '|' suelto no pertenece al alfabeto de LP
-
-        default:
-            break;
-    }
-
-    // Cualquier caracter que no encajo en ninguna regla anterior.
-    std::string lexema(1, c);
-    Token error(TipoToken::ERROR_LEXICO, lexema, lineaInicio, columnaInicio);
-    errores_.push_back(error);
-    return error;
-}
-
 Token Lexer::siguienteToken() {
     omitirEspacios();
 
@@ -262,7 +192,16 @@ Token Lexer::siguienteToken() {
         return leerTexto();
     }
 
-    return leerSimbolo();
+    // AVANCE SEMANA 2: todavia no se implementan operadores ni simbolos
+    // especiales (llegan en la Semana 3). Cualquier otro caracter se
+    // reporta como error lexico con su linea y columna exactas.
+    int lineaInicio   = linea_;
+    int columnaInicio = columna_;
+    std::string lexema(1, avanzar());
+
+    Token error(TipoToken::ERROR_LEXICO, lexema, lineaInicio, columnaInicio);
+    errores_.push_back(error);
+    return error;
 }
 
 std::vector<Token> Lexer::analizarTodo() {

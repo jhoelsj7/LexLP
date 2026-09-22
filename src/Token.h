@@ -11,8 +11,8 @@
 //      L = [a-zA-Z_]
 //
 // FASE ACTUAL (Semana 2): numericos + identificadores + texto + palabras
-// reservadas + operadores + simbolos especiales. El comentario (COMENT =
-// //.*\n) se reconoce pero no genera token: se descarta igual que un espacio.
+// reservadas + tabla de simbolos. Operadores, simbolos especiales y
+// comentarios se agregan en la Semana 3.
 // ---------------------------------------------------------------------------
 enum class TipoToken {
     NUM_INT,        // ER:  D+                 ejemplo: 20
@@ -25,32 +25,11 @@ enum class TipoToken {
     IF, ELSE, FOR, WHILE,
     SCANF, PRINTLN, MAIN, RETURN,
 
-    // Operador de comparacion/relacional: > >= < <= != ==
-    COMP,
-
-    // Asignacion
-    ASIGNACION,     // =
-
-    // Aritmeticos
-    SUMA, RESTA, MULT, DIV, MOD,               // + - * / %
-
-    // Logicos
-    AND, OR, NOT,                              // && || !
-
-    // Simbolos especiales
-    PAR_IZQ, PAR_DER,      // ( )
-    COR_IZQ, COR_DER,      // [ ]
-    LLAVE_IZQ, LLAVE_DER,  // { }
-    COMA, PUNTOCOMA,       // , ;
-
     ERROR_LEXICO,   // caracter (o cadena) que no pertenece al alfabeto de LP
     FIN_ARCHIVO     // marca interna: se llego al final de la entrada
 };
 
 // Nombre del tipo de token tal como debe aparecer en los reportes.
-// Los tokens con nombre propio (NUM_INT, ID, COMP, las reservadas, ...)
-// devuelven su nombre. Los "tokens directos" (=, +, (, ...) devuelven su
-// propio simbolo, tal como pide la especificacion.
 std::string nombreTipoToken(TipoToken tipo);
 
 // ---------------------------------------------------------------------------
