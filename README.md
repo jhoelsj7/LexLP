@@ -21,7 +21,6 @@ generadores tipo Lex/Flex.
 |---|---|---|
 | Semana 1 (15/09) | Lectura del archivo + `NUM_INT` + `NUM_DEC` | ✅ Implementado |
 | Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + tabla de símbolos | ✅ Implementado |
-| Semana 3 (29/09) | Operadores + tokens completos + integración + pruebas | ⏳ Pendiente |
 
 ### Expresiones regulares implementadas
 
@@ -38,8 +37,8 @@ Variables base: `D = [0-9]` y `L = [a-zA-Z_]`.
 Una palabra reservada tiene prioridad sobre `ID`: `if` produce `<IF>`, pero
 `if2` sigue siendo un `ID` porque no coincide exactamente con la palabra
 reservada. Cualquier carácter (o cadena de texto sin cerrar) que no encaje en
-ninguna de estas reglas se reporta como `ERROR_LEXICO`, porque operadores y
-símbolos especiales todavía no forman parte de esta fase.
+ninguna de estas reglas se reporta como `ERROR_LEXICO`, porque los demás
+tokens aún no forman parte de esta fase.
 
 ---
 
@@ -55,8 +54,8 @@ LexLP/
 │   ├── prueba_semana1.lp         # números enteros y decimales (fase actual)
 │   ├── prueba_semana1_limites.lp # casos límite: 15.  .5  3..14  @
 │   ├── prueba_basica.lp     # variables y tabla de símbolos (Semana 2)
-│   ├── prueba_completa.lp   # programa completo en LP (Semana 3)
-│   └── prueba_errores.lp    # errores léxicos (Semana 3)
+│   ├── prueba_completa.lp   # programa completo en LP
+│   └── prueba_errores.lp    # errores léxicos
 ├── output/
 │   ├── tokens.txt      # generado al ejecutar
 │   └── errores.txt     # generado al ejecutar

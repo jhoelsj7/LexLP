@@ -14,8 +14,7 @@
 // la especificacion estan traducidas directamente a codigo.
 //
 // FASE ACTUAL (Semana 2): numeros, identificadores, texto y palabras
-// reservadas. Operadores y simbolos especiales quedan para la Semana 3;
-// mientras tanto cualquier caracter que no encaje en las ER de esta fase
+// reservadas. Cualquier caracter que no encaje en las ER de esta fase
 // se reporta como ERROR_LEXICO.
 // ---------------------------------------------------------------------------
 class Lexer {

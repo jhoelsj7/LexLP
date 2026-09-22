@@ -193,8 +193,8 @@ Token Lexer::siguienteToken() {
     }
 
     // AVANCE SEMANA 2: todavia no se implementan operadores ni simbolos
-    // especiales (llegan en la Semana 3). Cualquier otro caracter se
-    // reporta como error lexico con su linea y columna exactas.
+    // especiales. Cualquier otro caracter se reporta como error lexico
+    // con su linea y columna exactas.
     int lineaInicio   = linea_;
     int columnaInicio = columna_;
     std::string lexema(1, avanzar());

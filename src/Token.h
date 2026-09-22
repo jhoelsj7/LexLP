@@ -11,8 +11,7 @@
 //      L = [a-zA-Z_]
 //
 // FASE ACTUAL (Semana 2): numericos + identificadores + texto + palabras
-// reservadas + tabla de simbolos. Operadores, simbolos especiales y
-// comentarios se agregan en la Semana 3.
+// reservadas + tabla de simbolos.
 // ---------------------------------------------------------------------------
 enum class TipoToken {
     NUM_INT,        // ER:  D+                 ejemplo: 20
