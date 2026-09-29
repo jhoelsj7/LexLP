@@ -19,9 +19,9 @@ generadores tipo Lex/Flex.
 
 | Entrega | Contenido | Estado |
 |---|---|---|
-| Semana 1 (15/09) | Lectura del archivo + `NUM_INT` + `NUM_DEC` | ✅ Implementado |
-| Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + tabla de símbolos | ✅ Implementado |
-| Semana 3 (29/09) | Operadores + símbolos especiales + comentarios + integración completa | ✅ Implementado |
+| Semana 1 (15/09) | Lectura del archivo + `NUM_INT` + `NUM_DEC` |  Implementado |
+| Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + tabla de símbolos | Implementado |
+| Semana 3 (29/09) | Operadores + símbolos especiales + comentarios + integración completa |  Implementado |
 
 ### Expresiones regulares implementadas
 
