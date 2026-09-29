@@ -21,6 +21,29 @@ std::string nombreTipoToken(TipoToken tipo) {
         case TipoToken::MAIN:         return "MAIN";
         case TipoToken::RETURN:       return "RETURN";
 
+        case TipoToken::ASIGNACION:   return "=";
+        case TipoToken::SUMA:         return "+";
+        case TipoToken::RESTA:        return "-";
+        case TipoToken::MULT:         return "*";
+        case TipoToken::DIV:          return "/";
+        case TipoToken::MOD:          return "%";
+        case TipoToken::AND:          return "&&";
+        case TipoToken::OR:           return "||";
+        case TipoToken::NOT:          return "!";
+        // Las 6 comparaciones (> >= < <= != ==) comparten una sola categoria
+        // generica COMP: asi lo pide la especificacion (seccion 4.3 y el
+        // ejemplo de la seccion 12, donde ">=" y "<=" imprimen ambas <COMP>).
+        case TipoToken::COMP:         return "COMP";
+
+        case TipoToken::PAR_IZQ:      return "(";
+        case TipoToken::PAR_DER:      return ")";
+        case TipoToken::COR_IZQ:      return "[";
+        case TipoToken::COR_DER:      return "]";
+        case TipoToken::LLAVE_IZQ:    return "{";
+        case TipoToken::LLAVE_DER:    return "}";
+        case TipoToken::COMA:         return ",";
+        case TipoToken::PUNTOYCOMA:   return ";";
+
         case TipoToken::ERROR_LEXICO: return "ERROR_LEXICO";
         case TipoToken::FIN_ARCHIVO:  return "FIN_ARCHIVO";
     }

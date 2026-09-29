@@ -13,9 +13,10 @@
 // empezando. No se usa ninguna libreria de expresiones regulares: las ER de
 // la especificacion estan traducidas directamente a codigo.
 //
-// FASE ACTUAL (Semana 2): numeros, identificadores, texto y palabras
-// reservadas. Cualquier caracter que no encaje en las ER de esta fase
-// se reporta como ERROR_LEXICO.
+// FASE ACTUAL (Semana 3): numeros, identificadores, texto, palabras
+// reservadas, operadores, simbolos especiales y comentarios de linea.
+// Cualquier caracter que no encaje en las ER de esta fase se reporta
+// como ERROR_LEXICO.
 // ---------------------------------------------------------------------------
 class Lexer {
 public:
@@ -52,11 +53,14 @@ private:
     char avanzar();             // consume el caracter actual y actualiza linea/columna
 
     void omitirEspacios();      // espacios, tabulaciones y saltos de linea
+    void omitirComentario();    // "//" hasta el fin de la linea (o del archivo)
 
     // --- reconocedores (uno por cada ER de la especificacion) ---
-    Token leerNumero();         // implementa  D+  y  D+\.D+
-    Token leerIdentificador();  // implementa  L(L|D)*  y detecta palabras reservadas
-    Token leerTexto();          // implementa  ".*"
+    Token leerNumero();             // implementa  D+  y  D+\.D+
+    Token leerIdentificador();      // implementa  L(L|D)*  y detecta palabras reservadas
+    Token leerTexto();              // implementa  ".*"
+    Token leerOperadorOSimbolo();   // operadores (=,+,-,*,/,%,&&,||,!,>,>=,<,<=,!=,==)
+                                     // y simbolos especiales ( ) [ ] { } , ;
 
     // Busca 'lexema' en la tabla de simbolos; si no esta, lo agrega.
     // Devuelve el indice en ambos casos.

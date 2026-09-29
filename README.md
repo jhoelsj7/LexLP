@@ -21,6 +21,7 @@ generadores tipo Lex/Flex.
 |---|---|---|
 | Semana 1 (15/09) | Lectura del archivo + `NUM_INT` + `NUM_DEC` | ✅ Implementado |
 | Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + tabla de símbolos | ✅ Implementado |
+| Semana 3 (29/09) | Operadores + símbolos especiales + comentarios + integración completa | ✅ Implementado |
 
 ### Expresiones regulares implementadas
 
@@ -36,9 +37,26 @@ Variables base: `D = [0-9]` y `L = [a-zA-Z_]`.
 
 Una palabra reservada tiene prioridad sobre `ID`: `if` produce `<IF>`, pero
 `if2` sigue siendo un `ID` porque no coincide exactamente con la palabra
-reservada. Cualquier carácter (o cadena de texto sin cerrar) que no encaje en
-ninguna de estas reglas se reporta como `ERROR_LEXICO`, porque los demás
-tokens aún no forman parte de esta fase.
+reservada.
+
+### Operadores, símbolos especiales y comentarios (Semana 3)
+
+| Lexema | Categoría | Token impreso |
+|---|---|---|
+| `=` | Asignación | `<=>` |
+| `+` `-` `*` `/` `%` | Aritméticos | `<+>` `<->` `<*>` `</>` `<%>` |
+| `&&` `\|\|` `!` | Lógicos | `<&&>` `<\|\|>` `<!>` |
+| `>` `>=` `<` `<=` `!=` `==` | Relacionales | `<COMP>` (categoría única para las 6, según especificación) |
+| `(` `)` `[` `]` `{` `}` `,` `;` | Símbolos especiales | `<(>` `<)>` `<[>` `<]>` `<{>` `<}>` `<,>` `<;>` |
+| `//.*\n` | Comentario de línea | se descarta: no genera token ni error |
+
+`/` se distingue de un comentario mirando el carácter siguiente: si también
+es `/`, todo lo que sigue hasta el fin de línea se descarta; si no, `/` es el
+operador de división.
+
+Cualquier carácter (o cadena de texto sin cerrar) que no encaje en ninguna
+de las reglas anteriores se reporta como `ERROR_LEXICO`, con su línea y
+columna exactas.
 
 ---
 
@@ -51,11 +69,20 @@ LexLP/
 │   ├── Lexer.h/.cpp    # el autómata: recorre el fuente y reconoce tokens
 │   └── Token.h/.cpp    # estructura Token y nombres de los tipos
 ├── tests/
-│   ├── prueba_semana1.lp         # números enteros y decimales (fase actual)
-│   ├── prueba_semana1_limites.lp # casos límite: 15.  .5  3..14  @
-│   ├── prueba_basica.lp     # variables y tabla de símbolos (Semana 2)
-│   ├── prueba_completa.lp   # programa completo en LP
-│   └── prueba_errores.lp    # errores léxicos
+│   ├── prueba_semana1.lp          # números enteros y decimales (fase actual)
+│   ├── prueba_semana1_limites.lp  # casos límite: 15.  .5  3..14  @
+│   ├── prueba_basica.lp                    # variables y tabla de símbolos (Semana 2)
+│   ├── prueba_identificadores.lp           # ID vs. palabras reservadas (if2, Int, IF, _privado...)
+│   ├── prueba_identificadores_repetidos.lp # un ID repetido reutiliza su índice en la tabla
+│   ├── prueba_texto_casos.lp               # TEXTO: normal, vacío y sin cerrar
+│   ├── prueba_operadores_aritmeticos.lp    # + - * / %
+│   ├── prueba_comparaciones.lp             # >= != == (categoría COMP)
+│   ├── prueba_logicos.lp                   # && y !
+│   ├── prueba_comentarios.lp               # // se descarta, no genera token
+│   ├── prueba_completa.lp                  # programa completo en LP (Semana 3)
+│   ├── prueba_errores.lp                   # errores léxicos (@, $)
+│   ├── expected/                           # salida esperada de cada prueba (para run_tests.sh)
+│   └── run_tests.sh               # corre todas las pruebas y compara contra expected/
 ├── output/
 │   ├── tokens.txt      # generado al ejecutar
 │   └── errores.txt     # generado al ejecutar
@@ -71,6 +98,25 @@ LexLP/
 compilar.bat
 LexLP.exe tests\prueba_semana1.lp
 ```
+
+### Funcionalidades adicionales
+
+- **Coloreado sintáctico en consola**: cada categoría de token se imprime en
+  un color distinto (números, identificadores, texto, palabras reservadas,
+  errores en rojo). Los archivos exportados a `output/` quedan siempre en
+  texto plano, sin códigos de color.
+
+- **Visualización paso a paso**: `LexLP.exe <archivo.lp> --visualizar`
+  recorre el archivo token por token, resaltando en el texto fuente
+  completo cuál es el lexema que se acaba de reconocer, y espera Enter
+  antes de continuar con el siguiente. Útil para explicar el
+  funcionamiento del autómata en vivo.
+
+- **Pruebas automatizadas**: `tests/run_tests.sh` compila el proyecto y
+  corre todos los `.lp` de `tests/` que tengan un resultado guardado en
+  `tests/expected/`, comparándolo con `diff`. Si un cambio de
+  comportamiento es intencional, `tests/run_tests.sh --actualizar`
+  regenera esa referencia.
 
 O de forma manual:
 

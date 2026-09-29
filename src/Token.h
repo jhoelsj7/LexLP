@@ -10,8 +10,9 @@
 //      D = [0-9]
 //      L = [a-zA-Z_]
 //
-// FASE ACTUAL (Semana 2): numericos + identificadores + texto + palabras
-// reservadas + tabla de simbolos.
+// FASE ACTUAL (Semana 3): numericos + identificadores + texto + palabras
+// reservadas + tabla de simbolos + operadores + simbolos especiales +
+// comentarios.
 // ---------------------------------------------------------------------------
 enum class TipoToken {
     NUM_INT,        // ER:  D+                 ejemplo: 20
@@ -23,6 +24,18 @@ enum class TipoToken {
     INT, FLOAT, CHAR, BOOLEAN, VOID,
     IF, ELSE, FOR, WHILE,
     SCANF, PRINTLN, MAIN, RETURN,
+
+    // Operadores
+    ASIGNACION,     // =
+    SUMA, RESTA, MULT, DIV, MOD,   // + - * / %
+    AND, OR, NOT,                  // && || !
+    COMP,           // > >= < <= != ==  (categoria generica, spec 4.3)
+
+    // Simbolos especiales
+    PAR_IZQ, PAR_DER,      // ( )
+    COR_IZQ, COR_DER,      // [ ]
+    LLAVE_IZQ, LLAVE_DER,  // { }
+    COMA, PUNTOYCOMA,      // , ;
 
     ERROR_LEXICO,   // caracter (o cadena) que no pertenece al alfabeto de LP
     FIN_ARCHIVO     // marca interna: se llego al final de la entrada

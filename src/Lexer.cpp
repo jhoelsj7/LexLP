@@ -56,6 +56,17 @@ void Lexer::omitirEspacios() {
     }
 }
 
+// ER:  //.*\n
+// Un comentario de linea se descarta por completo: no genera token ni
+// error, y no entra a la lista de tokens (spec 4.4).
+void Lexer::omitirComentario() {
+    avanzar(); // primer '/'
+    avanzar(); // segundo '/'
+    while (!finEntrada() && actual() != '\n') {
+        avanzar();
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Reconoce numeros. Traduce directamente estas dos expresiones regulares:
 //
@@ -171,8 +182,61 @@ Token Lexer::leerTexto() {
     return error;
 }
 
+// ER (spec 4.3 y 4.4): operadores de asignacion, aritmeticos, logicos y
+// relacionales, y los simbolos especiales ( ) [ ] { } , ;
+// Los de dos caracteres (==, !=, <=, >=, &&, ||) se resuelven con un
+// lookahead de un caracter, igual que el punto decimal en leerNumero().
+Token Lexer::leerOperadorOSimbolo() {
+    int lineaInicio   = linea_;
+    int columnaInicio = columna_;
+    char c = avanzar();
+
+    if (c == '=' && actual() == '=') { avanzar(); return Token(TipoToken::COMP, "==", lineaInicio, columnaInicio); }
+    if (c == '!' && actual() == '=') { avanzar(); return Token(TipoToken::COMP, "!=", lineaInicio, columnaInicio); }
+    if (c == '<' && actual() == '=') { avanzar(); return Token(TipoToken::COMP, "<=", lineaInicio, columnaInicio); }
+    if (c == '>' && actual() == '=') { avanzar(); return Token(TipoToken::COMP, ">=", lineaInicio, columnaInicio); }
+    if (c == '&' && actual() == '&') { avanzar(); return Token(TipoToken::AND, "&&", lineaInicio, columnaInicio); }
+    if (c == '|' && actual() == '|') { avanzar(); return Token(TipoToken::OR, "||", lineaInicio, columnaInicio); }
+
+    switch (c) {
+        case '=': return Token(TipoToken::ASIGNACION, "=", lineaInicio, columnaInicio);
+        case '+': return Token(TipoToken::SUMA,       "+", lineaInicio, columnaInicio);
+        case '-': return Token(TipoToken::RESTA,      "-", lineaInicio, columnaInicio);
+        case '*': return Token(TipoToken::MULT,       "*", lineaInicio, columnaInicio);
+        case '/': return Token(TipoToken::DIV,        "/", lineaInicio, columnaInicio);
+        case '%': return Token(TipoToken::MOD,        "%", lineaInicio, columnaInicio);
+        case '!': return Token(TipoToken::NOT,        "!", lineaInicio, columnaInicio);
+        case '<': return Token(TipoToken::COMP,       "<", lineaInicio, columnaInicio);
+        case '>': return Token(TipoToken::COMP,       ">", lineaInicio, columnaInicio);
+        case '(': return Token(TipoToken::PAR_IZQ,    "(", lineaInicio, columnaInicio);
+        case ')': return Token(TipoToken::PAR_DER,    ")", lineaInicio, columnaInicio);
+        case '[': return Token(TipoToken::COR_IZQ,    "[", lineaInicio, columnaInicio);
+        case ']': return Token(TipoToken::COR_DER,    "]", lineaInicio, columnaInicio);
+        case '{': return Token(TipoToken::LLAVE_IZQ,  "{", lineaInicio, columnaInicio);
+        case '}': return Token(TipoToken::LLAVE_DER,  "}", lineaInicio, columnaInicio);
+        case ',': return Token(TipoToken::COMA,       ",", lineaInicio, columnaInicio);
+        case ';': return Token(TipoToken::PUNTOYCOMA, ";", lineaInicio, columnaInicio);
+    }
+
+    // Ningun operador/simbolo de LP coincide: el caracter no pertenece
+    // al alfabeto del lenguaje (ej. '@', '$', '&' o '|' sueltos).
+    Token error(TipoToken::ERROR_LEXICO, std::string(1, c), lineaInicio, columnaInicio);
+    errores_.push_back(error);
+    return error;
+}
+
 Token Lexer::siguienteToken() {
-    omitirEspacios();
+    // Espacios y comentarios pueden alternarse (un comentario puede venir
+    // rodeado de mas espacios/saltos de linea), por eso se repite hasta
+    // que ya no quede ninguno de los dos antes de mirar el token real.
+    for (;;) {
+        omitirEspacios();
+        if (!finEntrada() && actual() == '/' && siguiente() == '/') {
+            omitirComentario();
+            continue;
+        }
+        break;
+    }
 
     if (finEntrada()) {
         return Token(TipoToken::FIN_ARCHIVO, "", linea_, columna_);
@@ -192,16 +256,7 @@ Token Lexer::siguienteToken() {
         return leerTexto();
     }
 
-    // AVANCE SEMANA 2: todavia no se implementan operadores ni simbolos
-    // especiales. Cualquier otro caracter se reporta como error lexico
-    // con su linea y columna exactas.
-    int lineaInicio   = linea_;
-    int columnaInicio = columna_;
-    std::string lexema(1, avanzar());
-
-    Token error(TipoToken::ERROR_LEXICO, lexema, lineaInicio, columnaInicio);
-    errores_.push_back(error);
-    return error;
+    return leerOperadorOSimbolo();
 }
 
 std::vector<Token> Lexer::analizarTodo() {

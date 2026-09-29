@@ -7,8 +7,15 @@
 //                          con linea y columna.
 // AVANCE SEMANA 2 (22/09): ID + TEXTO + palabras reservadas + tabla de
 //                          simbolos.
+// AVANCE SEMANA 3 (29/09): operadores + simbolos especiales + comentarios
+//                          + integracion completa del token set de LP.
 //
-// Uso:  LexLP.exe  <archivo.lp>
+// Funcionalidades adicionales (no forman parte del automata, solo de la
+// presentacion en consola):
+//   - Coloreado sintactico basico de la lista/detalle de tokens y errores.
+//   - Modo de visualizacion paso a paso del reconocimiento (--visualizar).
+//
+// Uso:  LexLP.exe  <archivo.lp>  [--visualizar]
 //       Si no se indica archivo, usa tests/prueba_semana1.lp
 // ---------------------------------------------------------------------------
 #include <iostream>
@@ -18,8 +25,92 @@
 #include <vector>
 #include <filesystem>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "Lexer.h"
 #include "Token.h"
+
+// ---------------------------------------------------------------------------
+// Coloreado sintactico basico (codigos ANSI). Solo se usa al imprimir en
+// consola (std::cout); los archivos exportados en output/ quedan siempre en
+// texto plano, sin codigos de color, para que se puedan abrir en cualquier
+// editor sin ruido.
+// ---------------------------------------------------------------------------
+namespace color {
+    const std::string RESET      = "\033[0m";
+    const std::string NUMERO     = "\033[36m";   // cian:    NUM_INT / NUM_DEC
+    const std::string ID         = "\033[33m";   // amarillo: identificadores
+    const std::string TEXTO      = "\033[32m";   // verde:   cadenas TEXTO
+    const std::string RESERVADA  = "\033[35m";   // magenta: palabras reservadas
+    const std::string OPERADOR   = "\033[34m";   // azul:    operadores
+    const std::string SIMBOLO    = "\033[37m";   // blanco:  simbolos especiales ( ) { } [ ] , ;
+    const std::string ERROR      = "\033[1;31m"; // rojo brillante: errores lexicos
+}
+
+// En Windows, cmd.exe necesita habilitar explicitamente el procesamiento de
+// secuencias ANSI; en Linux/WSL la terminal ya las soporta de forma nativa.
+static void habilitarColoresConsola() {
+#ifdef _WIN32
+    HANDLE hSalida = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD modo = 0;
+    if (hSalida != INVALID_HANDLE_VALUE && GetConsoleMode(hSalida, &modo)) {
+        SetConsoleMode(hSalida, modo | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+#endif
+}
+
+// Color asociado a cada tipo de token, segun su categoria.
+static const std::string& colorParaTipo(TipoToken tipo) {
+    switch (tipo) {
+        case TipoToken::NUM_INT:
+        case TipoToken::NUM_DEC:
+            return color::NUMERO;
+        case TipoToken::ID:
+            return color::ID;
+        case TipoToken::TEXTO:
+            return color::TEXTO;
+        case TipoToken::ERROR_LEXICO:
+            return color::ERROR;
+        case TipoToken::INT:
+        case TipoToken::FLOAT:
+        case TipoToken::CHAR:
+        case TipoToken::BOOLEAN:
+        case TipoToken::VOID:
+        case TipoToken::IF:
+        case TipoToken::ELSE:
+        case TipoToken::FOR:
+        case TipoToken::WHILE:
+        case TipoToken::SCANF:
+        case TipoToken::PRINTLN:
+        case TipoToken::MAIN:
+        case TipoToken::RETURN:
+            return color::RESERVADA;
+        case TipoToken::ASIGNACION:
+        case TipoToken::SUMA:
+        case TipoToken::RESTA:
+        case TipoToken::MULT:
+        case TipoToken::DIV:
+        case TipoToken::MOD:
+        case TipoToken::AND:
+        case TipoToken::OR:
+        case TipoToken::NOT:
+        case TipoToken::COMP:
+            return color::OPERADOR;
+        case TipoToken::PAR_IZQ:
+        case TipoToken::PAR_DER:
+        case TipoToken::COR_IZQ:
+        case TipoToken::COR_DER:
+        case TipoToken::LLAVE_IZQ:
+        case TipoToken::LLAVE_DER:
+        case TipoToken::COMA:
+        case TipoToken::PUNTOYCOMA:
+            return color::SIMBOLO;
+        default:
+            return color::RESET; // FIN_ARCHIVO: no deberia llegar a imprimirse
+    }
+}
 
 // Lee TODO el archivo fuente y lo devuelve en un solo string.
 // Se lee completo (y no linea por linea) porque el analizador necesita poder
@@ -37,7 +128,9 @@ static bool leerArchivo(const std::string& ruta, std::string& contenido) {
 
 // Imprime la lista de tokens respetando el orden del programa fuente
 // y agrupandolos por linea, tal como los muestra la especificacion.
-static void imprimirListaTokens(std::ostream& salida, const std::vector<Token>& tokens) {
+// 'colorear' solo debe ser true cuando 'salida' es la consola.
+static void imprimirListaTokens(std::ostream& salida, const std::vector<Token>& tokens,
+                                 bool colorear = false) {
     int lineaActual = -1;
     for (const Token& t : tokens) {
         if (t.linea != lineaActual) {
@@ -46,21 +139,25 @@ static void imprimirListaTokens(std::ostream& salida, const std::vector<Token>& 
         } else {
             salida << " ";
         }
-        salida << t.aCadena();
+        if (colorear) salida << colorParaTipo(t.tipo) << t.aCadena() << color::RESET;
+        else          salida << t.aCadena();
     }
     salida << "\n";
 }
 
 // Detalle de cada token con su ubicacion: sirve de apoyo para depurar
 // y para sustentar el reconocimiento en la presentacion.
-static void imprimirDetalleTokens(std::ostream& salida, const std::vector<Token>& tokens) {
+static void imprimirDetalleTokens(std::ostream& salida, const std::vector<Token>& tokens,
+                                   bool colorear = false) {
     salida << "LINEA  COLUMNA  TOKEN         LEXEMA\n";
     salida << "-----  -------  ------------  ------------\n";
     for (const Token& t : tokens) {
         salida << "  " << t.linea
                << "\t   " << t.columna
-               << "\t   " << nombreTipoToken(t.tipo)
-               << "\t " << t.lexema << "\n";
+               << "\t   ";
+        if (colorear) salida << colorParaTipo(t.tipo) << nombreTipoToken(t.tipo) << color::RESET;
+        else          salida << nombreTipoToken(t.tipo);
+        salida << "\t " << t.lexema << "\n";
     }
 }
 
@@ -79,7 +176,8 @@ static void imprimirTablaSimbolos(std::ostream& salida, const std::vector<std::s
     }
 }
 
-static void imprimirErrores(std::ostream& salida, const std::vector<Token>& errores) {
+static void imprimirErrores(std::ostream& salida, const std::vector<Token>& errores,
+                             bool colorear = false) {
     if (errores.empty()) {
         salida << "No se encontraron errores lexicos.\n";
         return;
@@ -89,13 +187,86 @@ static void imprimirErrores(std::ostream& salida, const std::vector<Token>& erro
     for (const Token& e : errores) {
         salida << "  " << e.linea
                << "\t   " << e.columna
-               << "\t   " << e.lexema
-               << "\t " << nombreTipoToken(e.tipo) << "\n";
+               << "\t   ";
+        if (colorear) salida << color::ERROR << e.lexema << color::RESET;
+        else          salida << e.lexema;
+        salida << "\t " << nombreTipoToken(e.tipo) << "\n";
+    }
+}
+
+// Busca en 'fuente' la posicion (indice de caracter) donde empieza la
+// linea/columna dada. Un token solo trae (linea, columna), no su posicion
+// dentro del string completo; esta funcion la reconstruye recorriendo el
+// texto igual que lo hace el propio Lexer con avanzar().
+static size_t posicionDesdeLineaColumna(const std::string& fuente, int lineaObjetivo, int columnaObjetivo) {
+    int linea = 1, columna = 1;
+    for (size_t i = 0; i < fuente.size(); ++i) {
+        if (linea == lineaObjetivo && columna == columnaObjetivo) return i;
+        if (fuente[i] == '\n') { linea++; columna = 1; }
+        else                   { columna++; }
+    }
+    return fuente.size();
+}
+
+// ---------------------------------------------------------------------------
+// Modo de visualizacion (--visualizar): recorre el archivo token por token,
+// igual que analizarTodo(), pero deteniendose en cada paso para mostrar que
+// parte del texto se acaba de reconocer. Usa su propio Lexer (independiente
+// del que hace el analisis "real"), asi que no interfiere con el resto del
+// programa ni con los archivos exportados en output/.
+// ---------------------------------------------------------------------------
+static void modoVisualizacion(const std::string& fuente) {
+    std::cout << "\n=== VISUALIZACION PASO A PASO ===\n";
+    std::cout << "(presiona Enter despues de cada paso)\n";
+
+    Lexer lexer(fuente);
+    int paso = 0;
+
+    while (true) {
+        Token t = lexer.siguienteToken();
+        if (t.tipo == TipoToken::FIN_ARCHIVO) {
+            std::cout << "\n--- Fin del archivo: no quedan mas caracteres por leer ---\n";
+            break;
+        }
+
+        paso++;
+        size_t inicio = posicionDesdeLineaColumna(fuente, t.linea, t.columna);
+        size_t fin    = inicio + t.lexema.size();
+
+        std::cout << "\nPaso " << paso << ":\n  ";
+        std::cout << fuente.substr(0, inicio);                                   // ya procesado
+        std::cout << colorParaTipo(t.tipo) << fuente.substr(inicio, fin - inicio) // lexema actual
+                   << color::RESET;
+        std::cout << fuente.substr(fin);                                         // todavia sin leer
+        std::cout << "\n";
+
+        if (t.tipo == TipoToken::ERROR_LEXICO) {
+            std::cout << "  -> " << color::ERROR << "ERROR_LEXICO" << color::RESET;
+        } else {
+            std::cout << "  -> " << colorParaTipo(t.tipo) << t.aCadena() << color::RESET;
+        }
+        std::cout << "   lexema=\"" << t.lexema << "\""
+                   << "   (linea " << t.linea << ", columna " << t.columna << ")\n";
+
+        std::cout << "  [Enter para continuar] " << std::flush;
+        std::cin.get();
     }
 }
 
 int main(int argc, char* argv[]) {
-    std::string rutaFuente = (argc > 1) ? argv[1] : "tests/prueba_semana1.lp";
+    std::string rutaFuente = "tests/prueba_semana1.lp";
+    bool modoVisual = false;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--visualizar" || arg == "-v") {
+            modoVisual = true;
+        } else {
+            rutaFuente = arg;
+        }
+    }
+
+    habilitarColoresConsola();
 
     std::string fuente;
     if (!leerArchivo(rutaFuente, fuente)) {
@@ -106,22 +277,26 @@ int main(int argc, char* argv[]) {
     std::cout << "=== LexLP - Analizador Lexico ===\n";
     std::cout << "Archivo fuente: " << rutaFuente << "\n\n";
 
+    if (modoVisual) {
+        modoVisualizacion(fuente);
+    }
+
     // 1. Analisis lexico
     Lexer lexer(fuente);
     std::vector<Token> tokens = lexer.analizarTodo();
 
-    // 2. Salida por consola
+    // 2. Salida por consola (coloreada)
     std::cout << "--- LISTA DE TOKENS ---\n";
-    imprimirListaTokens(std::cout, tokens);
+    imprimirListaTokens(std::cout, tokens, true);
 
     std::cout << "\n--- DETALLE (linea / columna) ---\n";
-    imprimirDetalleTokens(std::cout, tokens);
+    imprimirDetalleTokens(std::cout, tokens, true);
 
     std::cout << "\n--- TABLA DE SIMBOLOS ---\n";
     imprimirTablaSimbolos(std::cout, lexer.tablaSimbolos());
 
     std::cout << "\n--- ERRORES LEXICOS ---\n";
-    imprimirErrores(std::cout, lexer.errores());
+    imprimirErrores(std::cout, lexer.errores(), true);
 
     std::cout << "\nTotal de tokens reconocidos: " << tokens.size() << "\n";
     std::cout << "Total de identificadores:    " << lexer.tablaSimbolos().size() << "\n";
