@@ -1,0 +1,9 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/error_sin_main.lp
+
+Fase lexica:      3 tokens, 0 errores lexicos
+Fase sintactica:  1 error
+
+Error sintactico en linea 1, columna 9: se esperaba '(' (fuera de main solo se permiten declaraciones de funcion) pero se encontro ';'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

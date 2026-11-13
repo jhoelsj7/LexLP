@@ -25,12 +25,16 @@
 #include <vector>
 #include <filesystem>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "Lexer.h"
 #include "Token.h"
+
+// windows.h va DESPUES de nuestros headers: define macros como VOID y ERROR
+// que chocan con TipoToken::VOID y color::ERROR, por eso se anulan aqui.
+#ifdef _WIN32
+#include <windows.h>
+#undef VOID
+#undef ERROR
+#endif
 
 // ---------------------------------------------------------------------------
 // Coloreado sintactico basico (codigos ANSI). Solo se usa al imprimir en
@@ -86,6 +90,7 @@ static const std::string& colorParaTipo(TipoToken tipo) {
         case TipoToken::PRINTLN:
         case TipoToken::MAIN:
         case TipoToken::RETURN:
+        case TipoToken::FUNC:
             return color::RESERVADA;
         case TipoToken::ASIGNACION:
         case TipoToken::SUMA:

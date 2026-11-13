@@ -1,0 +1,10 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/error_llave_sin_cerrar.lp
+
+Fase lexica:      12 tokens, 0 errores lexicos
+Fase sintactica:  1 error
+
+Error sintactico en linea 4, columna 1: se esperaba '}' pero se encontro fin de archivo.
+  Sugerencia: probablemente falta '}' al final de la linea 3, despues de ';'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

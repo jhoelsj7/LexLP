@@ -23,7 +23,7 @@ enum class TipoToken {
     // Palabras reservadas
     INT, FLOAT, CHAR, BOOLEAN, VOID,
     IF, ELSE, FOR, WHILE,
-    SCANF, PRINTLN, MAIN, RETURN,
+    SCANF, PRINTLN, MAIN, RETURN, FUNC,
 
     // Operadores
     ASIGNACION,     // =

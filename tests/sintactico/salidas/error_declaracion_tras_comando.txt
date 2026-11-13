@@ -1,0 +1,9 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/error_declaracion_tras_comando.lp
+
+Fase lexica:      16 tokens, 0 errores lexicos
+Fase sintactica:  1 error
+
+Error sintactico en linea 4, columna 5: se esperaba '}' o un comando (las declaraciones deben ir antes de los comandos) pero se encontro 'float'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

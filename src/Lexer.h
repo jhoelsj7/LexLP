@@ -1,4 +1,4 @@
-ifndef LEXER_H
+#ifndef LEXER_H
 #define LEXER_H
 
 #include <string>

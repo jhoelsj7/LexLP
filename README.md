@@ -22,6 +22,8 @@ generadores tipo Lex/Flex.
 | Semana 1 (15/09) | Lectura del archivo + `NUM_INT` + `NUM_DEC` |  Implementado |
 | Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + tabla de símbolos | Implementado |
 | Semana 3 (29/09) | Operadores + símbolos especiales + comentarios + integración completa |  Implementado |
+| Sintáctico – Entregable 1 (13/11) | Integración lexer→parser, `PROGRAMA`, `PRINCIPAL`, `BLOQUE`, declaraciones, asignaciones, errores básicos | Implementado |
+| Sintáctico – Entregable 2 (24/11) | AST, recuperación de errores (varios errores por ejecución), pruebas de funciones/IO/control | Pendiente |
 
 ### Expresiones regulares implementadas
 
@@ -33,7 +35,7 @@ Variables base: `D = [0-9]` y `L = [a-zA-Z_]`.
 | `D+\.D+` | `NUM_DEC` | `15.5` |
 | `L(L\|D)*` | `ID` | `edad` |
 | `".*"` | `TEXTO` | `"hola"` |
-| `int, float, char, boolean, void, if, else, for, while, scanf, println, main, return` | `INT, FLOAT, CHAR, BOOLEAN, VOID, IF, ELSE, FOR, WHILE, SCANF, PRINTLN, MAIN, RETURN` | `if` |
+| `int, float, char, boolean, void, if, else, for, while, scanf, println, main, return, func` | `INT, FLOAT, CHAR, BOOLEAN, VOID, IF, ELSE, FOR, WHILE, SCANF, PRINTLN, MAIN, RETURN, FUNC` | `if` |
 
 Una palabra reservada tiene prioridad sobre `ID`: `if` produce `<IF>`, pero
 `if2` sigue siendo un `ID` porque no coincide exactamente con la palabra
@@ -65,7 +67,9 @@ columna exactas.
 ```
 LexLP/
 ├── src/
-│   ├── main.cpp        # lectura del archivo y reportes de salida
+│   ├── main.cpp        # LexLP: lectura del archivo y reportes de salida del lexer
+│   ├── mainParser.cpp  # ParserLP: archivo .lp -> Lexer -> Parser -> ACEPTADO/RECHAZADO
+│   ├── Parser.h/.cpp   # analizador sintáctico por descenso recursivo
 │   ├── Lexer.h/.cpp    # el autómata: recorre el fuente y reconoce tokens
 │   └── Token.h/.cpp    # estructura Token y nombres de los tipos
 ├── tests/
@@ -82,10 +86,14 @@ LexLP/
 │   ├── prueba_completa.lp                  # programa completo en LP (Semana 3)
 │   ├── prueba_errores.lp                   # errores léxicos (@, $)
 │   ├── expected/                           # salida esperada de cada prueba (para run_tests.sh)
-│   └── run_tests.sh               # corre todas las pruebas y compara contra expected/
+│   ├── run_tests.sh               # corre todas las pruebas y compara contra expected/
+│   ├── sintactico/                # pruebas del parser: valido_*.lp y error_*.lp
+│   │   └── salidas/               # salida de cada prueba (evidencia de ejecución)
+│   └── run_tests_parser.sh        # corre las pruebas del parser
 ├── output/
 │   ├── tokens.txt      # generado al ejecutar
-│   └── errores.txt     # generado al ejecutar
+│   ├── errores.txt     # generado al ejecutar
+│   └── sintactico.txt  # resultado del último análisis sintáctico
 ├── compilar.bat
 └── README.md
 ```
@@ -170,3 +178,113 @@ Si no se indica archivo, se usa `tests/prueba_semana1.lp` por defecto.
   se reporta como `ERROR_LEXICO` (con el texto leído hasta el corte), en
   vez de dejar que el analizador arrastre el error a las líneas
   siguientes.
+
+
+---
+
+# Analizador Sintáctico (ParserLP)
+
+## Flujo
+
+```
+archivo.lp ──► Lexer::analizarConFin() ──► vector<Token> (termina en FIN_ARCHIVO) ──► Parser::analizar() ──► ACEPTADO / RECHAZADO
+```
+
+El parser **no lee caracteres**: solo consume los tokens del lexer. Si hay
+errores léxicos, se reportan y no se intenta el análisis sintáctico (los
+tokens no serían confiables).
+
+## Compilar y ejecutar
+
+```bat
+compilar.bat
+ParserLP.exe tests\sintactico\valido_minimo.lp
+ParserLP.exe tests\sintactico\error_falta_puntoycoma.lp
+```
+
+Manual: `g++ -std=c++17 -Wall -o ParserLP.exe src\mainParser.cpp src\Parser.cpp src\Lexer.cpp src\Token.cpp`
+
+Código de salida: `0` aceptado, `1` rechazado (error léxico o sintáctico), `2` archivo no encontrado.
+El resultado también se guarda en `output/sintactico.txt`.
+
+Pruebas: `bash tests/run_tests_parser.sh` (los `valido_*.lp` deben aceptarse
+y los `error_*.lp` rechazarse; la salida de cada uno queda en
+`tests/sintactico/salidas/`).
+
+## Ejemplo
+
+```
+$ ParserLP.exe tests/sintactico/error_falta_puntoycoma.lp
+Error sintactico en linea 3, columna 5: se esperaba ';' pero se encontro 'edad' (identificador).
+  Sugerencia: probablemente falta ';' al final de la linea 2, despues de 'edad'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)
+```
+
+## Implementación: descenso recursivo
+
+Cada no terminal de la gramática LP es un método de `Parser` con el mismo
+nombre (`PROGRAMA` → `programa()`, `LISTA_VARIABLES` → `listaVariables()`,
+`EXPRESION_ADITIVA2` → `expresionAditiva2()`, ...). La producción está
+escrita como comentario encima de cada método.
+
+| Utilidad | Rol |
+|---|---|
+| `actual()` | token de *lookahead* (no lo consume) |
+| `esperar(tipo, desc)` | *match*: consume el token si es el esperado, si no lanza el error |
+| `iniciaComando()`, `iniciaExpresion()`, `esTipoBase()` | conjuntos PRIMERO para elegir la producción |
+
+- **Producciones con ε**: si el token actual está en el PRIMERO de la
+  alternativa, se sigue; si no, se toma ε sin consumir nada.
+- **Recursión por la derecha** (`LISTA_ID`, `EXPRESION_ADITIVA2`, ...):
+  `X → a Y X | ε` se implementa con un `while`; es equivalente y más simple.
+- **Precedencia** (de menor a mayor): `||` → `&&` → `comp` → `+ -` → `* / %`
+  → `FACTOR`. Sale directamente de la cadena de no terminales de la gramática.
+
+## Terminales de la gramática ↔ tokens del lexer
+
+| Gramática | Token |
+|---|---|
+| `id`, `num_int`, `num_dec`, `texto` | `ID`, `NUM_INT`, `NUM_DEC`, `TEXTO` |
+| `comp` | `COMP` (`>`, `>=`, `<`, `<=`, `!=`, `==`) |
+| `func` | `FUNC` (palabra reservada agregada al lexer para esta etapa) |
+| `= + - * / % && \|\| !` | `ASIGNACION SUMA RESTA MULT DIV MOD AND OR NOT` |
+| `( ) [ ] { } , ;` | `PAR_IZQ PAR_DER COR_IZQ COR_DER LLAVE_IZQ LLAVE_DER COMA PUNTOYCOMA` |
+
+## Decisiones de implementación
+
+- **`void main()`**: la gramática dice `PRINCIPAL → main ( ) BLOQUE`, pero los
+  ejemplos del enunciado usan `void main()`. Como `void` también inicia una
+  `DECLARACION_FUNCION`, en `listaFunciones()` se mira un token más (LL(2)):
+  si después de `void` viene `main`, se termina la lista de funciones y
+  `principal()` acepta ese `void` opcional.
+- **Arreglos**: según `TIPO → TIPO_BASE DIMENSION` la dimensión va pegada al
+  tipo: `float[10] notas;` (no `float notas[10];`). El acceso `notas[i]` se
+  permite en expresiones, `scanf` y `println` (`DIMENSION2`), pero no a la
+  izquierda de `=`, porque `ASIGNACION → id = COMPLEMENTO ;`.
+- **Llamada como comando** (`func f(x)`): la gramática no pone `;` después de
+  `FUNCION`; se acepta un `;` opcional para no rechazar `func f(x);`.
+- **`return` exige expresión** (`return EXPRESION ;`): `return;` es error.
+- **`for` no se reconoce**: no existe producción para él en la gramática.
+- **Declaraciones antes de comandos** en cada `BLOQUE`; si aparece un tipo
+  después de un comando, el mensaje lo indica explícitamente.
+- **Errores (Entregable 1)**: modo pánico — al primer error se lanza
+  `ErrorSintactico` y se detiene el análisis. El mensaje incluye línea,
+  columna, lo esperado y el token encontrado; si falta un cierre (`;`, `)`,
+  `}`, `]`) y el token encontrado está en una línea posterior, se sugiere la
+  línea anterior como origen. La recuperación para reportar varios errores y
+  la construcción del AST corresponden al Entregable 2.
+
+## Casos de prueba (`tests/sintactico/`)
+
+| Archivo | Esperado | Qué prueba |
+|---|---|---|
+| `valido_minimo.lp` | Aceptado | ejemplo mínimo del enunciado (4.2) |
+| `valido_declaraciones.lp` | Aceptado | listas de ids, arreglos, todos los tipos, expresiones con precedencia |
+| `valido_integral.lp` | Aceptado | función con parámetro, `if/else`, `while`, `func`, `scanf`, `println`, `return` |
+| `error_falta_puntoycoma.lp` | Rechazado | ejemplo incorrecto del enunciado (4.3) |
+| `error_llave_sin_cerrar.lp` | Rechazado | falta `}` del bloque |
+| `error_parentesis.lp` | Rechazado | `(` sin cerrar en una expresión |
+| `error_token_inesperado.lp` | Rechazado | `edad = = 20;` |
+| `error_declaracion_tras_comando.lp` | Rechazado | declaración después de un comando |
+| `error_sin_main.lp` | Rechazado | variable global / falta `main` |

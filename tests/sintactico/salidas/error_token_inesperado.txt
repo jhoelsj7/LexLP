@@ -1,0 +1,9 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/error_token_inesperado.lp
+
+Fase lexica:      14 tokens, 0 errores lexicos
+Fase sintactica:  1 error
+
+Error sintactico en linea 3, columna 12: se esperaba una expresion (identificador, numero, texto, '!' o '(') pero se encontro '='.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)
