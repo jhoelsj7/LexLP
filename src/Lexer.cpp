@@ -116,6 +116,7 @@ bool Lexer::esPalabraReservada(const std::string& lexema, TipoToken& tipo) {
         {"println", TipoToken::PRINTLN},
         {"main",    TipoToken::MAIN},
         {"return",  TipoToken::RETURN},
+        {"func",    TipoToken::FUNC},     // llamada a funcion (gramatica LP)
     };
     auto it = reservadas.find(lexema);
     if (it == reservadas.end()) return false;
@@ -225,4 +226,63 @@ Token Lexer::leerOperadorOSimbolo() {
     return error;
 }
 
+Token Lexer::siguienteToken() {
+    // Espacios y comentarios pueden alternarse (un comentario puede venir
+    // rodeado de mas espacios/saltos de linea), por eso se repite hasta
+    // que ya no quede ninguno de los dos antes de mirar el token real.
+    for (;;) {
+        omitirEspacios();
+        if (!finEntrada() && actual() == '/' && siguiente() == '/') {
+            omitirComentario();
+            continue;
+        }
+        break;
+    }
+
+    if (finEntrada()) {
+        return Token(TipoToken::FIN_ARCHIVO, "", linea_, columna_);
+    }
+
+    char c = actual();
+
+    if (esDigito(c)) {
+        return leerNumero();
+    }
+
+    if (esLetra(c)) {
+        return leerIdentificador();
+    }
+
+    if (c == '"') {
+        return leerTexto();
+    }
+
+    return leerOperadorOSimbolo();
+}
+
+std::vector<Token> Lexer::analizarTodo() {
+    std::vector<Token> tokens;
+    while (true) {
+        Token t = siguienteToken();
+        if (t.tipo == TipoToken::FIN_ARCHIVO) break;
+        // los errores no entran a la lista de tokens: van al reporte de errores
+        if (t.tipo == TipoToken::ERROR_LEXICO) continue;
+        tokens.push_back(t);
+    }
+    return tokens;
+}
+
+// Igual que analizarTodo(), pero conserva el token FIN_ARCHIVO al final.
+// Es la entrada que consume el analizador sintactico: necesita saber
+// donde termina el programa para poder detectar "fin de archivo inesperado".
+std::vector<Token> Lexer::analizarConFin() {
+    std::vector<Token> tokens;
+    while (true) {
+        Token t = siguienteToken();
+        if (t.tipo == TipoToken::ERROR_LEXICO) continue; // quedan en errores()
+        tokens.push_back(t);
+        if (t.tipo == TipoToken::FIN_ARCHIVO) break;
+    }
+    return tokens;
+}
 
