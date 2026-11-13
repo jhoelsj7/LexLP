@@ -170,3 +170,77 @@ Si no se indica archivo, se usa `tests/prueba_semana1.lp` por defecto.
   se reporta como `ERROR_LEXICO` (con el texto leído hasta el corte), en
   vez de dejar que el analizador arrastre el error a las líneas
   siguientes.
+
+---
+
+# Analizador Sintáctico (Proyecto integrador — Entregable 1)
+
+Parser de **descenso recursivo** para la gramática LL(1) de LP. Consume los
+tokens que produce el lexer; nunca vuelve a leer caracteres del fuente.
+
+```
+archivo.lp → Lexer → tokens → Parser → PROGRAMA ACEPTADO / RECHAZADO (+ mensaje)
+```
+
+## Compilar y ejecutar
+
+```
+compilar.bat                                   (Windows: genera LexLP.exe y ParserLP.exe)
+ParserLP.exe tests\sintactico\validos\v01_minimo.lp
+```
+
+En Linux/WSL:
+
+```
+g++ -std=c++17 -Wall -Wextra -o ParserLP src/mainParser.cpp src/Parser.cpp src/Lexer.cpp src/Token.cpp
+./ParserLP tests/sintactico/validos/v01_minimo.lp
+```
+
+Código de salida: `0` aceptado, `1` rechazado, `2` archivo no encontrado.
+El informe también se guarda en `output/sintactico.txt`.
+
+## Módulos
+
+| Archivo | Responsabilidad |
+| --- | --- |
+| `src/Lexer.h/.cpp`, `src/Token.h/.cpp` | Analizador léxico. Se agregó el token `FUNC` (palabra reservada `func`) y `analizarConFin()`, que entrega los tokens terminados en `FIN_ARCHIVO`. |
+| `src/Parser.h/.cpp` | Parser: una función por cada no terminal (`programa()`, `bloque()`, `listaVariables()`, `asignacion()`, `expresionAditiva()`, …). |
+| `src/mainParser.cpp` | Integración: lee el `.lp`, llama al lexer, luego al parser, e imprime el resultado. |
+
+## Cómo funciona el parser
+
+- `esperar(tipo)` consume el token si coincide; si no, lanza `ErrorSintactico`.
+- Las producciones con ε se resuelven con `if`/`while` que consultan el conjunto
+  PRIMERO (ej. `esInicioComando()`).
+- Un nivel de expresión por función: `||` → `&&` → comparación → `+ -` → `* / %` → factor.
+  Por eso `*` agrupa antes que `+` y los operadores son asociativos a la izquierda.
+- Mensaje de error: ubicación, qué se esperaba y qué se encontró, con una pista
+  cuando es un olvido típico (`;` al final de la línea anterior, declaración
+  después de un comando).
+- Si hay errores léxicos no se ejecuta el parser (los tokens no son confiables).
+- En esta entrega el parser se detiene en el **primer** error sintáctico.
+
+## Decisiones respecto a la gramática
+
+- **`void main()`**: la gramática dice `PRINCIPAL → main ( ) BLOQUE`, pero el
+  ejemplo oficial usa `void main()`. Se acepta un `void` opcional antes de `main`.
+- **`func`** se agregó al lexer como palabra reservada.
+- **`for`** sigue en el lexer, pero la gramática no lo incluye: el parser lo rechaza.
+- **`return`** exige expresión (`return;` es error).
+- **Llamada como comando** (`func saludar()`) no lleva `;`, tal como define la gramática;
+  dentro de una asignación el `;` lo pone `ASIGNACION`.
+- **Arreglos**: la dimensión va en el tipo (`int[10] v;`), no en el nombre. La
+  gramática tampoco permite asignar a un elemento (`v[0] = 1;` es inválido) ni
+  `-(expr)` (el signo solo precede a un id o una constante).
+
+## Pruebas
+
+```
+tests/run_tests_parser.sh        (-v para ver los mensajes de error)
+```
+
+- `tests/sintactico/validos/`: 4 programas que deben ser aceptados
+  (mínimo, integral, funciones/arreglos/lectura, expresiones).
+- `tests/sintactico/invalidos/`: 8 casos que deben ser rechazados (`;` faltante,
+  llave sin cerrar, paréntesis del `if`, expresión incompleta, declaración tardía,
+  `return;`, error léxico, falta `main`).
