@@ -22,7 +22,7 @@ generadores tipo Lex/Flex.
 | Semana 1 (15/09) | Lectura del archivo + `NUM_INT` + `NUM_DEC` |  Implementado |
 | Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + tabla de símbolos | Implementado |
 | Semana 3 (29/09) | Operadores + símbolos especiales + comentarios + integración completa |  Implementado |
-| Semana 11 (13/11) | ntegración con el analizador léxico y la implementación inicial del analizador sintáctico, incluyendo el reconocimiento de la estructura básica del programa, declaraciones y asignaciones |  Implementado |
+| Semana 11 (13/11) | Integración con el analizador léxico y la implementación inicial del analizador sintáctico, incluyendo el reconocimiento de la estructura básica del programa, declaraciones y asignaciones |  Implementado |
 
 ### Expresiones regulares implementadas
 
