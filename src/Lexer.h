@@ -21,7 +21,7 @@
 class Lexer {
 public:
     explicit Lexer(const std::string& fuente);
-
+   
     // Reconoce y devuelve el siguiente token del programa fuente.
     // Al llegar al final devuelve un token de tipo FIN_ARCHIVO.
     Token siguienteToken();
