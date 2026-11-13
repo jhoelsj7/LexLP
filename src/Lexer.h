@@ -1,4 +1,4 @@
-#ifndef LEXER_H
+ifndef LEXER_H
 #define LEXER_H
 
 #include <string>
@@ -21,7 +21,7 @@
 class Lexer {
 public:
     explicit Lexer(const std::string& fuente);
-   
+
     // Reconoce y devuelve el siguiente token del programa fuente.
     // Al llegar al final devuelve un token de tipo FIN_ARCHIVO.
     Token siguienteToken();
@@ -30,6 +30,10 @@ public:
     // en el mismo orden en que aparecen. Los errores quedan aparte
     // y se consultan con errores().
     std::vector<Token> analizarTodo();
+
+    // Variante para el analizador sintactico: igual que analizarTodo() pero
+    // el ultimo token de la lista es FIN_ARCHIVO.
+    std::vector<Token> analizarConFin();
 
     const std::vector<Token>& errores() const { return errores_; }
 
