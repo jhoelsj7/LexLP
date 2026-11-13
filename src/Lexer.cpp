@@ -225,37 +225,4 @@ Token Lexer::leerOperadorOSimbolo() {
     return error;
 }
 
-Token Lexer::siguienteToken() {
-    // Espacios y comentarios pueden alternarse (un comentario puede venir
-    // rodeado de mas espacios/saltos de linea), por eso se repite hasta
-    // que ya no quede ninguno de los dos antes de mirar el token real.
-    for (;;) {
-        omitirEspacios();
-        if (!finEntrada() && actual() == '/' && siguiente() == '/') {
-            omitirComentario();
-            continue;
-        }
-        break;
-    }
-
-    if (finEntrada()) {
-        return Token(TipoToken::FIN_ARCHIVO, "", linea_, columna_);
-    }
-
-    char c = actual();
-
-    if (esDigito(c)) {
-        return leerNumero();
-    }
-
-    if (esLetra(c)) {
-        return leerIdentificador();
-    }
-
-    if (c == '"') {
-        return leerTexto();
-    }
-
-    return leerOperadorOSimbolo();
-}
 
