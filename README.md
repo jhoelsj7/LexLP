@@ -288,3 +288,7 @@ escrita como comentario encima de cada método.
 | `error_token_inesperado.lp` | Rechazado | `edad = = 20;` |
 | `error_declaracion_tras_comando.lp` | Rechazado | declaración después de un comando |
 | `error_sin_main.lp` | Rechazado | variable global / falta `main` |
+
+Además, `tests/sintactico/validos/` (v01–v04: mínimo, integral, funciones con arreglos, expresiones) y
+`tests/sintactico/invalidos/` (i01–i08, incluye `return;` sin expresión, error léxico y falta de `main`).
+En Windows también se pueden correr con `probar_parser.bat` (después de `compilar.bat`).

@@ -1,0 +1,7 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/validos/v04_expresiones.lp
+
+Fase lexica:      68 tokens, 0 errores lexicos
+Fase sintactica:  sin errores
+
+Resultado: PROGRAMA ACEPTADO (sintacticamente correcto)

@@ -1,0 +1,9 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/invalidos/i06_return_sin_expresion.lp
+
+Fase lexica:      11 tokens, 0 errores lexicos
+Fase sintactica:  1 error
+
+Error sintactico en linea 3, columna 11: se esperaba una expresion (identificador, numero, texto, '!' o '(') pero se encontro ';'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

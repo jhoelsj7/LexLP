@@ -1,0 +1,9 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/invalidos/i03_parentesis_if.lp
+
+Fase lexica:      25 tokens, 0 errores lexicos
+Fase sintactica:  1 error
+
+Error sintactico en linea 4, columna 19: se esperaba ')' pero se encontro '{'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

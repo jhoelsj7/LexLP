@@ -1,0 +1,7 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/validos/v03_funciones.lp
+
+Fase lexica:      146 tokens, 0 errores lexicos
+Fase sintactica:  sin errores
+
+Resultado: PROGRAMA ACEPTADO (sintacticamente correcto)

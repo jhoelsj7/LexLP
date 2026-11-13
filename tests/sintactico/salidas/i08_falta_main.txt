@@ -1,0 +1,9 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/invalidos/i08_falta_main.lp
+
+Fase lexica:      9 tokens, 0 errores lexicos
+Fase sintactica:  1 error
+
+Error sintactico en linea 4, columna 1: se esperaba 'main' pero se encontro fin de archivo.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

@@ -1,0 +1,10 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/invalidos/i01_falta_puntoycoma.lp
+
+Fase lexica:      12 tokens, 0 errores lexicos
+Fase sintactica:  1 error
+
+Error sintactico en linea 3, columna 5: se esperaba ';' pero se encontro 'edad' (identificador).
+  Sugerencia: probablemente falta ';' al final de la linea 2, despues de 'edad'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

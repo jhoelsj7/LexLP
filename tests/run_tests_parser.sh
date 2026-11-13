@@ -2,9 +2,9 @@
 # ---------------------------------------------------------------------------
 # Pruebas del analizador sintactico (ParserLP).
 #
-# Convencion de nombres en tests/sintactico/:
-#   valido_*.lp  -> debe ser ACEPTADO  (codigo de salida 0)
-#   error_*.lp   -> debe ser RECHAZADO (codigo de salida 1)
+# Convencion en tests/sintactico/:
+#   valido_*.lp  y  validos/*.lp    -> debe ser ACEPTADO  (codigo de salida 0)
+#   error_*.lp   y  invalidos/*.lp  -> debe ser RECHAZADO (codigo de salida 1)
 # La salida de cada caso se guarda en tests/sintactico/salidas/ como
 # evidencia de ejecucion.
 # ---------------------------------------------------------------------------
@@ -16,13 +16,13 @@ g++ -std=c++17 -Wall -Wextra -static -o "$BIN" src/mainParser.cpp src/Parser.cpp
 mkdir -p tests/sintactico/salidas
 
 total=0; fallidas=0
-for archivo in tests/sintactico/*.lp; do
+for archivo in tests/sintactico/*.lp tests/sintactico/validos/*.lp tests/sintactico/invalidos/*.lp; do
     base=$(basename "$archivo" .lp)
     "$BIN" "$archivo" > "tests/sintactico/salidas/$base.txt"
     codigo=$?
-    case "$base" in
-        valido_*) esperado=0 ;;
-        *)        esperado=1 ;;
+    case "$archivo" in
+        */validos/*|*/valido_*) esperado=0 ;;
+        *)                      esperado=1 ;;
     esac
     total=$((total + 1))
     if [[ $codigo -eq $esperado ]]; then

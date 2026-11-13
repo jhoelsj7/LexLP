@@ -1,0 +1,9 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/invalidos/i07_error_lexico.lp
+
+Fase lexica:      9 tokens, 1 errores lexicos
+
+Errores lexicos (corrigelos antes del analisis sintactico):
+  linea 2, columna 9: '@' no pertenece al lenguaje LP
+
+Resultado: PROGRAMA RECHAZADO (error lexico)
