@@ -26,7 +26,13 @@
 #include <filesystem>
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+// windows.h define las macros VOID y ERROR, que chocan con los tokens
+// TipoToken::VOID y color::ERROR. Se desactivan despues del include
+// (solo se usan GetStdHandle/SetConsoleMode, que no las necesitan).
+#undef VOID
+#undef ERROR
 #endif
 
 #include "Lexer.h"
@@ -86,6 +92,7 @@ static const std::string& colorParaTipo(TipoToken tipo) {
         case TipoToken::PRINTLN:
         case TipoToken::MAIN:
         case TipoToken::RETURN:
+        case TipoToken::FUNC:
             return color::RESERVADA;
         case TipoToken::ASIGNACION:
         case TipoToken::SUMA:
