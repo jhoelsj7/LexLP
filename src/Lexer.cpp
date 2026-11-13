@@ -259,14 +259,3 @@ Token Lexer::siguienteToken() {
     return leerOperadorOSimbolo();
 }
 
-std::vector<Token> Lexer::analizarTodo() {
-    std::vector<Token> tokens;
-    while (true) {
-        Token t = siguienteToken();
-        if (t.tipo == TipoToken::FIN_ARCHIVO) break;
-        // los errores no entran a la lista de tokens: van al reporte de errores
-        if (t.tipo == TipoToken::ERROR_LEXICO) continue;
-        tokens.push_back(t);
-    }
-    return tokens;
-}
