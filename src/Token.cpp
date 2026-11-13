@@ -20,6 +20,7 @@ std::string nombreTipoToken(TipoToken tipo) {
         case TipoToken::PRINTLN:      return "PRINTLN";
         case TipoToken::MAIN:         return "MAIN";
         case TipoToken::RETURN:       return "RETURN";
+        case TipoToken::FUNC:         return "FUNC";
 
         case TipoToken::ASIGNACION:   return "=";
         case TipoToken::SUMA:         return "+";
