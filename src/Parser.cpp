@@ -72,6 +72,7 @@ std::string Parser::describir(const Token& t) {
     }
 }
 
+
 // Construye el mensaje y corta la produccion actual (modo panico).
 // Quien lo atrapa (comandos, listaVariables, ...) lo registra y se recupera.
 void Parser::error(const std::string& esperado) {
