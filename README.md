@@ -262,8 +262,11 @@ escrita como comentario encima de cada método.
   tipo: `float[10] notas;` (no `float notas[10];`). El acceso `notas[i]` se
   permite en expresiones, `scanf` y `println` (`DIMENSION2`), pero no a la
   izquierda de `=`, porque `ASIGNACION → id = COMPLEMENTO ;`.
-- **Llamada como comando** (`func f(x)`): la gramática no pone `;` después de
-  `FUNCION`; se acepta un `;` opcional para no rechazar `func f(x);`.
+- **Llamada como comando** (`func f(x)`): se sigue la gramática al pie de la
+  letra (`COMANDO → FUNCION`, `FUNCION → func id ( ARGUMENTOS )`), que no pone
+  `;` después de la llamada. Por eso `func f(x);` es un **error sintáctico**,
+  con un mensaje específico que lo explica (`invalidos/i12_func_con_puntoycoma.lp`).
+  En una asignación sí va `;`, porque lo exige `ASIGNACION`: `x = func f(x);`.
 - **`return` exige expresión** (`return EXPRESION ;`): `return;` es error.
 - **`for` no se reconoce**: no existe producción para él en la gramática.
 - **Declaraciones antes de comandos** en cada `BLOQUE`; si aparece un tipo
@@ -304,7 +307,7 @@ En Windows también se pueden correr con `probar_parser.bat` (después de `compi
 | AST | `src/Ast.h` (nuevo), `src/Parser.h/.cpp` | cada método del parser devuelve el nodo del árbol que reconoció |
 | Recuperación de errores | `src/Parser.cpp` | el análisis continúa después de un error y se reportan **todos** en una sola ejecución |
 | Opción `--ast` | `src/mainParser.cpp` | imprime el AST en consola; el AST de un programa aceptado siempre se guarda en `output/ast.txt` |
-| Pruebas nuevas | `tests/sintactico/validos/v05–v06`, `tests/sintactico/invalidos/i09–i11` | funciones, entrada/salida, control anidado y programas con varios errores |
+| Pruebas nuevas | `tests/sintactico/validos/v05–v06`, `tests/sintactico/invalidos/i09–i12` | funciones, entrada/salida, control anidado y programas con varios errores |
 | Evidencia del AST | `tests/sintactico/salidas/ast/` | `run_tests_parser.sh` guarda el AST de cada programa válido |
 
 `Ast.h` es solo un header, así que `compilar.bat` y los comandos de compilación no cambian.
@@ -419,6 +422,7 @@ Resultado: PROGRAMA RECHAZADO (error sintactico)
 | `invalidos/i09_varios_errores.lp` | Rechazado (5 errores) | falta `;`, expresión incompleta, `)` faltante en `println`, condición vacía, `return;` |
 | `invalidos/i10_errores_funciones.lp` | Rechazado (6 errores) | error en la cabecera de una función, en `scanf`, en `func`, en `println`, en `if` y `= =` |
 | `invalidos/i11_errores_declaraciones.lp` | Rechazado (3 errores) | `int a, ;`, `float[] b;`, declaración después de un comando |
+| `invalidos/i12_func_con_puntoycoma.lp` | Rechazado (1 error) | `func f(x);` como comando: la gramática no pone `;` después de `FUNCION` (en `x = func f(x);` sí va, por `ASIGNACION`) |
 
-`bash tests/run_tests_parser.sh` corre las 26 pruebas: las 21 del Entregable 1
+`bash tests/run_tests_parser.sh` corre las 27 pruebas: las 21 del Entregable 1
 siguen dando exactamente la misma salida.

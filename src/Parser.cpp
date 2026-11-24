@@ -422,9 +422,12 @@ NodoPtr Parser::comando() {
         case TipoToken::RETURN:  return retorno();
         case TipoToken::FUNC: {
             NodoPtr llamada = funcion();
-            // La gramatica no pone ';' despues de FUNCION como comando.
-            // Se acepta uno opcional para no rechazar "func f(x);".
-            if (es(TipoToken::PUNTOYCOMA)) avanzar();
+            // COMANDO -> FUNCION  y  FUNCION -> func id ( ARGUMENTOS ):
+            // la gramatica NO pone ';' despues de una llamada usada como
+            // comando, asi que "func f(x);" es un error sintactico. Se da un
+            // mensaje especifico (mas claro que un "se esperaba '}'" generico).
+            if (es(TipoToken::PUNTOYCOMA))
+                error("otro comando o '}' (una llamada 'func' usada como comando no lleva ';')");
             return llamada;
         }
         default:

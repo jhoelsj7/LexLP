@@ -1,7 +1,7 @@
 === ParserLP - Analizador Sintactico ===
 Archivo fuente: tests/sintactico/validos/v05_funciones_io.lp
 
-Fase lexica:      204 tokens, 0 errores lexicos
+Fase lexica:      203 tokens, 0 errores lexicos
 Fase sintactica:  sin errores
 
 Resultado: PROGRAMA ACEPTADO (sintacticamente correcto)

@@ -1,0 +1,9 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/invalidos/i12_func_con_puntoycoma.lp
+
+Fase lexica:      41 tokens, 0 errores lexicos
+Fase sintactica:  1 error
+
+Error sintactico en linea 11, columna 20: se esperaba otro comando o '}' (una llamada 'func' usada como comando no lleva ';') pero se encontro ';'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)
