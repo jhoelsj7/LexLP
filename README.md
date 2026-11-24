@@ -12,9 +12,9 @@ El autómata está implementado **a mano**: cada expresión regular de la
 especificación se traduce directamente a código que recorre el texto carácter
 por carácter. No se utiliza ninguna librería de expresiones regulares ni
 generadores tipo Lex/Flex.
-
+ 
 ---
-
+ 
 ## Estado por fases
 
 | Entrega | Contenido | Estado |
