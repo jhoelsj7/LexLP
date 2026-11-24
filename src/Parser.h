@@ -7,6 +7,7 @@
 #include "Ast.h"
 #include "Token.h"
 
+
 // ---------------------------------------------------------------------------
 // Analizador sintactico de LP por DESCENSO RECURSIVO.
 //
@@ -29,6 +30,7 @@
 //    de un comando en una linea nueva...) y el analisis continua. Asi se
 //    reportan varios errores en una sola ejecucion.
 // ---------------------------------------------------------------------------
+
 
 struct ErrorSintactico : public std::runtime_error {
     size_t pos;   // indice del token donde se detecto (evita repetir errores)
