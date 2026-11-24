@@ -4,7 +4,9 @@
 //
 // Flujo:   archivo .lp  ->  Lexer  ->  tokens  ->  Parser  ->  resultado
 //
-// Uso:  ParserLP.exe <archivo.lp>
+// Uso:  ParserLP.exe <archivo.lp> [--ast]
+//       --ast  imprime tambien el Arbol de Sintaxis Abstracta (Entregable 2).
+//              El AST de un programa aceptado siempre se guarda en output/ast.txt
 //
 // Codigo de salida:  0 = programa ACEPTADO
 //                    1 = programa RECHAZADO (error lexico o sintactico)
@@ -32,10 +34,11 @@ static bool leerArchivo(const std::string& ruta, std::string& contenido) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Uso: ParserLP <archivo.lp>\n";
+        std::cerr << "Uso: ParserLP <archivo.lp> [--ast]\n";
         return 2;
     }
     const std::string ruta = argv[1];
+    const bool mostrarAst = argc >= 3 && std::string(argv[2]) == "--ast";
 
     std::string fuente;
     if (!leerArchivo(ruta, fuente)) {
@@ -67,13 +70,32 @@ int main(int argc, char* argv[]) {
         codigo = 1;
     } else {
         // 2. Analisis sintactico
+        // Entregable 2: el parser se recupera de los errores, asi que puede
+        // reportar varios en una sola ejecucion.
         Parser parser(tokens);
         bool ok = parser.analizar();
-        informe << "Fase sintactica:  " << (ok ? "sin errores" : "1 error") << "\n\n";
+        const size_t nErrores = parser.errores().size();
+        informe << "Fase sintactica:  ";
+        if (ok)                 informe << "sin errores";
+        else if (nErrores == 1) informe << "1 error";
+        else                    informe << nErrores << " errores";
+        informe << "\n\n";
         if (ok) {
             informe << "Resultado: PROGRAMA ACEPTADO (sintacticamente correcto)\n";
+
+            // AST: se imprime en consola con --ast y siempre se guarda en output/ast.txt
+            std::ostringstream arbol;
+            parser.ast()->imprimir(arbol);
+            if (mostrarAst) {
+                informe << "\n=== Arbol de Sintaxis Abstracta (AST) ===\n" << arbol.str();
+            }
+            std::filesystem::create_directories("output");
+            std::ofstream salidaAst("output/ast.txt");
+            salidaAst << arbol.str();
         } else {
-            informe << parser.mensajeError() << "\n\n";
+            for (const std::string& e : parser.errores()) {
+                informe << e << "\n\n";
+            }
             informe << "Resultado: PROGRAMA RECHAZADO (error sintactico)\n";
             codigo = 1;
         }

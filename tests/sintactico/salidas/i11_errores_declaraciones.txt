@@ -1,0 +1,13 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/invalidos/i11_errores_declaraciones.lp
+
+Fase lexica:      31 tokens, 0 errores lexicos
+Fase sintactica:  3 errores
+
+Error sintactico en linea 3, columna 12: se esperaba un identificador despues de ',' pero se encontro ';'.
+
+Error sintactico en linea 4, columna 11: se esperaba el tamano del arreglo (numero entero) pero se encontro ']'.
+
+Error sintactico en linea 7, columna 5: se esperaba '}' o un comando (las declaraciones deben ir antes de los comandos) pero se encontro 'int'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

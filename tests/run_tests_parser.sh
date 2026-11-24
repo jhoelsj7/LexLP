@@ -24,6 +24,11 @@ for archivo in tests/sintactico/*.lp tests/sintactico/validos/*.lp tests/sintact
         */validos/*|*/valido_*) esperado=0 ;;
         *)                      esperado=1 ;;
     esac
+    # Entregable 2: el AST de cada programa valido queda en salidas/ast/
+    if [[ $esperado -eq 0 ]]; then
+        mkdir -p tests/sintactico/salidas/ast
+        "$BIN" "$archivo" --ast > "tests/sintactico/salidas/ast/$base.txt"
+    fi
     total=$((total + 1))
     if [[ $codigo -eq $esperado ]]; then
         echo "OK      $base"

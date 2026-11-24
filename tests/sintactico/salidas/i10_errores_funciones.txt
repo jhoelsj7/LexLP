@@ -1,0 +1,19 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/invalidos/i10_errores_funciones.lp
+
+Fase lexica:      64 tokens, 0 errores lexicos
+Fase sintactica:  6 errores
+
+Error sintactico en linea 2, columna 16: se esperaba ')' pero se encontro 'int'.
+
+Error sintactico en linea 8, columna 14: se esperaba una variable (identificador) para leer pero se encontro ')'.
+
+Error sintactico en linea 9, columna 23: se esperaba ')' pero se encontro ';'.
+
+Error sintactico en linea 10, columna 22: se esperaba ')' pero se encontro 'y' (identificador).
+
+Error sintactico en linea 11, columna 15: se esperaba ')' pero se encontro '{'.
+
+Error sintactico en linea 14, columna 9: se esperaba una expresion (identificador, numero, texto, '!' o '(') pero se encontro '='.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

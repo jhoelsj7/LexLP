@@ -1,0 +1,48 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/validos/v02_integral.lp
+
+Fase lexica:      62 tokens, 0 errores lexicos
+Fase sintactica:  sin errores
+
+Resultado: PROGRAMA ACEPTADO (sintacticamente correcto)
+
+=== Arbol de Sintaxis Abstracta (AST) ===
+PROGRAMA  (linea 1)
+`-- PRINCIPAL main  (linea 1)
+    `-- BLOQUE  (linea 1)
+        |-- DECLARACION int  (linea 2)
+        |   `-- VARIABLE edad  (linea 2)
+        |-- DECLARACION float  (linea 3)
+        |   `-- VARIABLE promedio  (linea 3)
+        |-- ASIGNACION edad  (linea 4)
+        |   `-- NUM_INT 20  (linea 4)
+        |-- ASIGNACION promedio  (linea 5)
+        |   `-- NUM_DEC 15.5  (linea 5)
+        |-- SI if  (linea 6)
+        |   |-- CONDICION  (linea 6)
+        |   |   `-- OPERACION &&  (linea 6)
+        |   |       |-- OPERACION >=  (linea 6)
+        |   |       |   |-- ID edad  (linea 6)
+        |   |       |   `-- NUM_INT 18  (linea 6)
+        |   |       `-- OPERACION <=  (linea 6)
+        |   |           |-- ID edad  (linea 6)
+        |   |           `-- NUM_INT 60  (linea 6)
+        |   |-- BLOQUE  (linea 6)
+        |   |   `-- ESCRITURA println  (linea 7)
+        |   |       `-- TEXTO "Edad valida"  (linea 7)
+        |   `-- SINO else  (linea 8)
+        |       `-- BLOQUE  (linea 8)
+        |           `-- ESCRITURA println  (linea 9)
+        |               `-- TEXTO "Edad no valida"  (linea 9)
+        |-- MIENTRAS while  (linea 11)
+        |   |-- CONDICION  (linea 11)
+        |   |   `-- OPERACION >  (linea 11)
+        |   |       |-- ID edad  (linea 11)
+        |   |       `-- NUM_INT 0  (linea 11)
+        |   `-- BLOQUE  (linea 11)
+        |       `-- ASIGNACION edad  (linea 12)
+        |           `-- OPERACION -  (linea 12)
+        |               |-- ID edad  (linea 12)
+        |               `-- NUM_INT 1  (linea 12)
+        `-- RETORNO return  (linea 14)
+            `-- ID edad  (linea 14)

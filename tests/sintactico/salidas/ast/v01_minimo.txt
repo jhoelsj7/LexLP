@@ -1,0 +1,20 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/validos/v01_minimo.lp
+
+Fase lexica:      20 tokens, 0 errores lexicos
+Fase sintactica:  sin errores
+
+Resultado: PROGRAMA ACEPTADO (sintacticamente correcto)
+
+=== Arbol de Sintaxis Abstracta (AST) ===
+PROGRAMA  (linea 1)
+`-- PRINCIPAL main  (linea 1)
+    `-- BLOQUE  (linea 1)
+        |-- DECLARACION int  (linea 2)
+        |   `-- VARIABLE edad  (linea 2)
+        |-- DECLARACION float  (linea 3)
+        |   `-- VARIABLE promedio  (linea 3)
+        |-- ASIGNACION edad  (linea 4)
+        |   `-- NUM_INT 20  (linea 4)
+        `-- ASIGNACION promedio  (linea 5)
+            `-- NUM_DEC 15.5  (linea 5)

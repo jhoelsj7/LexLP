@@ -1,0 +1,18 @@
+=== ParserLP - Analizador Sintactico ===
+Archivo fuente: tests/sintactico/invalidos/i09_varios_errores.lp
+
+Fase lexica:      41 tokens, 0 errores lexicos
+Fase sintactica:  5 errores
+
+Error sintactico en linea 4, columna 5: se esperaba ';' pero se encontro 'float'.
+  Sugerencia: probablemente falta ';' al final de la linea 3, despues de 'edad'.
+
+Error sintactico en linea 5, columna 16: se esperaba una expresion (identificador, numero, texto, '!' o '(') pero se encontro ';'.
+
+Error sintactico en linea 7, columna 26: se esperaba ')' pero se encontro ';'.
+
+Error sintactico en linea 8, columna 19: se esperaba una expresion (identificador, numero, texto, '!' o '(') pero se encontro ')'.
+
+Error sintactico en linea 11, columna 11: se esperaba una expresion (identificador, numero, texto, '!' o '(') pero se encontro ';'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)

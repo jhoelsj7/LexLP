@@ -23,7 +23,7 @@ generadores tipo Lex/Flex.
 | Semana 2 (22/09) | `ID` + `TEXTO` + palabras reservadas + tabla de símbolos | Implementado |
 | Semana 3 (29/09) | Operadores + símbolos especiales + comentarios + integración completa |  Implementado |
 | Sintáctico – Entregable 1 (13/11) | Integración lexer→parser, `PROGRAMA`, `PRINCIPAL`, `BLOQUE`, declaraciones, asignaciones, errores básicos | Implementado |
-| Sintáctico – Entregable 2 (24/11) | AST, recuperación de errores (varios errores por ejecución), pruebas de funciones/IO/control | Pendiente |
+| Sintáctico – Entregable 2 (24/11) | AST, recuperación de errores (varios errores por ejecución), pruebas de funciones/IO/control | Implementado |
 
 ### Expresiones regulares implementadas
 
@@ -292,3 +292,133 @@ escrita como comentario encima de cada método.
 Además, `tests/sintactico/validos/` (v01–v04: mínimo, integral, funciones con arreglos, expresiones) y
 `tests/sintactico/invalidos/` (i01–i08, incluye `return;` sin expresión, error léxico y falta de `main`).
 En Windows también se pueden correr con `probar_parser.bat` (después de `compilar.bat`).
+
+---
+
+# Analizador Sintáctico – Entregable 2
+
+## Qué se agregó
+
+| Parte | Dónde | Descripción |
+|---|---|---|
+| AST | `src/Ast.h` (nuevo), `src/Parser.h/.cpp` | cada método del parser devuelve el nodo del árbol que reconoció |
+| Recuperación de errores | `src/Parser.cpp` | el análisis continúa después de un error y se reportan **todos** en una sola ejecución |
+| Opción `--ast` | `src/mainParser.cpp` | imprime el AST en consola; el AST de un programa aceptado siempre se guarda en `output/ast.txt` |
+| Pruebas nuevas | `tests/sintactico/validos/v05–v06`, `tests/sintactico/invalidos/i09–i11` | funciones, entrada/salida, control anidado y programas con varios errores |
+| Evidencia del AST | `tests/sintactico/salidas/ast/` | `run_tests_parser.sh` guarda el AST de cada programa válido |
+
+`Ast.h` es solo un header, así que `compilar.bat` y los comandos de compilación no cambian.
+
+```bat
+compilar.bat
+ParserLP.exe tests\sintactico\validos\v06_control.lp --ast
+ParserLP.exe tests\sintactico\invalidos\i09_varios_errores.lp
+```
+
+## Árbol de Sintaxis Abstracta (AST)
+
+Todos los nodos tienen la misma forma: `tipo`, `valor` (nombre, operador o
+constante), `linea` e `hijos`. El AST **no** guarda los símbolos que solo
+sirven a la sintaxis (`( ) { } ; ,`) ni los no terminales auxiliares
+(`EXPRESION_O2`, `LISTA_ID`, ...).
+
+| Construcción LP | Nodo | Hijos |
+|---|---|---|
+| programa | `PROGRAMA` | `FUNCION`..., `PRINCIPAL` |
+| `int suma(int a, int b) {...}` | `FUNCION int suma` | `PARAMETROS` (`PARAMETRO int a`...), `BLOQUE` |
+| `main() {...}` | `PRINCIPAL main` | `BLOQUE` |
+| `{ ... }` | `BLOQUE` | declaraciones y comandos en orden |
+| `int a, b;` | `DECLARACION int` | `VARIABLE a`, `VARIABLE b` |
+| `x = e;` | `ASIGNACION x` | expresión o `LLAMADA` |
+| `scanf(x, v[i]);` | `LECTURA` | `ID`, `ACCESO_ARREGLO` |
+| `println("t", x);` | `ESCRITURA` | `TEXTO`, `ID`, `NUM_INT`... |
+| `if (c) {...} else {...}` | `SI` | `CONDICION`, `BLOQUE`, `SINO` → `BLOQUE` |
+| `while (c) {...}` | `MIENTRAS` | `CONDICION`, `BLOQUE` |
+| `return e;` | `RETORNO` | expresión |
+| `func f(a, b)` | `LLAMADA f` | argumentos |
+| `a + b`, `x >= 1`, `p && q` | `OPERACION <op>` | operando izquierdo, operando derecho |
+| `!e` / `-x` | `NEGACION !` / `SIGNO -` | operando |
+| `v[i][j]` | `ACCESO_ARREGLO v` | índices |
+| `x`, `20`, `15.5`, `"hola"` | `ID`, `NUM_INT`, `NUM_DEC`, `TEXTO` | — |
+
+- **Asociatividad por la izquierda:** cada `X2` recibe el operando izquierdo
+  ya construido y lo envuelve en `OPERACION`, así `a - b - c` queda
+  `(a - b) - c`.
+- **La precedencia la da la forma del árbol:** `a + b * c` deja la `*` más
+  abajo que la `+`. Por eso `( EXPRESION )` no genera un nodo propio.
+
+Ejemplo (`ParserLP.exe programa.lp --ast`):
+
+```
+PROGRAMA  (linea 1)
+`-- PRINCIPAL main  (linea 1)
+    `-- BLOQUE  (linea 1)
+        |-- DECLARACION int  (linea 2)
+        |   `-- VARIABLE edad  (linea 2)
+        `-- ASIGNACION edad  (linea 3)
+            `-- OPERACION +  (linea 3)
+                |-- NUM_INT 20  (linea 3)
+                `-- NUM_INT 1  (linea 3)
+```
+
+## Recuperación de errores: modo pánico con sincronización
+
+1. El método que detecta el error lanza `ErrorSintactico`, igual que en el
+   Entregable 1, con el mismo mensaje (línea, columna, lo esperado y lo
+   encontrado).
+2. Lo atrapan los **puntos de recuperación**: cada `COMANDO`, cada
+   declaración de `LISTA_VARIABLES`, el cierre de `BLOQUE` y las cabeceras
+   de función y de `main`.
+3. Se registra el error y se descartan tokens hasta un **token de
+   sincronización**:
+
+| Token | Acción |
+|---|---|
+| `;` | se consume: termina la instrucción con error |
+| `}` | no se consume: lo cierra el `BLOQUE` que corresponde |
+| `{` | se salta el bloque completo, que pertenece a la instrucción con error |
+| `scanf`, `println`, `if`, `while`, `return` | inicio del siguiente comando |
+| comando o tipo al inicio de una **línea nueva** | caso típico: falta `;` y la siguiente instrucción está debajo |
+
+- **Sin errores en cascada:** un mismo token nunca genera dos errores.
+- **Declaración tardía:** después del error, la declaración se analiza igual
+  y el bloque continúa.
+- **Error en una cabecera** (`int suma(int a int b)`): se salta hasta el `{`
+  del cuerpo y se analiza el cuerpo normalmente.
+- Si la recuperación llega al fin de archivo (por ejemplo, falta la `}`
+  final), el análisis termina ahí.
+- Un programa con un solo error produce exactamente la misma salida que en
+  el Entregable 1. Con varios errores, la salida dice `Fase sintactica:  N errores`
+  y los lista en orden.
+
+Ejemplo (`tests/sintactico/invalidos/i09_varios_errores.lp`):
+
+```
+Fase sintactica:  5 errores
+
+Error sintactico en linea 4, columna 5: se esperaba ';' pero se encontro 'float'.
+  Sugerencia: probablemente falta ';' al final de la linea 3, despues de 'edad'.
+
+Error sintactico en linea 5, columna 16: se esperaba una expresion (identificador, numero, texto, '!' o '(') pero se encontro ';'.
+
+Error sintactico en linea 7, columna 26: se esperaba ')' pero se encontro ';'.
+
+Error sintactico en linea 8, columna 19: se esperaba una expresion (identificador, numero, texto, '!' o '(') pero se encontro ')'.
+
+Error sintactico en linea 11, columna 11: se esperaba una expresion (identificador, numero, texto, '!' o '(') pero se encontro ';'.
+
+Resultado: PROGRAMA RECHAZADO (error sintactico)
+```
+
+## Casos de prueba nuevos
+
+| Archivo | Esperado | Qué prueba |
+|---|---|---|
+| `validos/v05_funciones_io.lp` | Aceptado | funciones `float`/`int`/`void` con varios parámetros y arreglos, llamadas con `func`, `scanf` y `println` con varios términos |
+| `validos/v06_control.lp` | Aceptado | `while` con `if/else` anidados, `&&`, `\|\|`, `!`, signo unario y `%` |
+| `invalidos/i09_varios_errores.lp` | Rechazado (5 errores) | falta `;`, expresión incompleta, `)` faltante en `println`, condición vacía, `return;` |
+| `invalidos/i10_errores_funciones.lp` | Rechazado (6 errores) | error en la cabecera de una función, en `scanf`, en `func`, en `println`, en `if` y `= =` |
+| `invalidos/i11_errores_declaraciones.lp` | Rechazado (3 errores) | `int a, ;`, `float[] b;`, declaración después de un comando |
+
+`bash tests/run_tests_parser.sh` corre las 26 pruebas: las 21 del Entregable 1
+siguen dando exactamente la misma salida.
