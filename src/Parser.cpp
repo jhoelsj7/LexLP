@@ -14,6 +14,7 @@ Parser::Parser(const std::vector<Token>& tokens)
     }
 }
 
+
 const Token& Parser::actual() const { return tokens_[pos_]; }
 
 const Token& Parser::siguienteTok() const {
